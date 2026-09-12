@@ -304,7 +304,7 @@ const points = {};
 members.forEach(function(member) {
 
     points[member] =
-        Math.round((scores[member] / 9) * 100);
+        scores[member] === 9 ? 100 : scores[member];
 
 });
 
