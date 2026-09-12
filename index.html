@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>北海道日本ハムファイターズ スタメン予想</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    header {
+      background: #0080c8;
+      color: white;
+      text-align: center;
+      padding: 20px 10px;
+    }
+
+    .logo {
+      width: 220px;
+      max-width: 80%;
+    }
+
+    header h2 {
+      margin: 8px 0 0;
+      font-size: 28px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+
+    .game-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .date {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .match {
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.6;
+    }
+
+    .stadium {
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .deadline {
+      background: #d71920;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .ranking-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .ranking-card h3 {
+      margin-top: 0;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 8px;
+    }
+
+    .ranking {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .ranking:last-child {
+      border-bottom: none;
+    }
+
+    .prediction-list {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .prediction-list h3 {
+      margin-top: 0;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 8px;
+    }
+
+    .prediction-list p {
+      color: #666;
+    }
+
+    .predict-button {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: #0080c8;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .predict-button:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <img src="logo.svg" alt="北海道日本ハムファイターズ" class="logo">
+    <h2>スタメン予想 ⚾</h2>
+  </header>
+
+  <div class="container">
+
+    <!-- 試合情報 -->
+<div class="game-card" id="gameInfo">
+
+  <div class="date">
+    試合情報を読み込み中...
+  </div>
+
+</div>
+
+
+    <!-- 現在のランキング -->
+    <div class="ranking-card">
+
+      <h3>🏆 現在のランキング</h3>
+
+      <div class="ranking">
+        <span>1位　ともき</span>
+        <strong>準備中</strong>
+      </div>
+
+      <div class="ranking">
+        <span>2位　えりか</span>
+        <strong>準備中</strong>
+      </div>
+
+      <div class="ranking">
+        <span>3位　ほのか</span>
+        <strong>準備中</strong>
+      </div>
+
+      <div class="ranking">
+        <span>4位　ゆな</span>
+        <strong>準備中</strong>
+      </div>
+
+    </div>
+
+
+    <!-- みんなの予想 -->
+    <div class="prediction-list">
+
+      <h3>⚾ みんなのスタメン予想</h3>
+
+      <p>予想を入力すると、ここに全員のスタメン予想が表示されます。</p>
+
+    </div>
+
+
+    <!-- 予想ボタン -->
+    <button class="predict-button" onclick="location.href='yoso.html'">
+  スタメンを予想する ⚾
+</button>
+
+<button class="predict-button" onclick="location.href='kakunin.html'" style="margin-top: 10px;">
+  みんなの予想を確認する 📊
+</button>
+
+  </div>
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+fetch(GAS_URL)
+  .then(response => response.json())
+  .then(games => {
+
+    const today = new Date();
+
+    const todayString =
+      today.getFullYear() + "-" +
+      String(today.getMonth() + 1).padStart(2, "0") + "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    const todayGame = games.find(game => game.date === todayString);
+
+    const gameInfo = document.getElementById("gameInfo");
+
+    if (!todayGame) {
+      gameInfo.innerHTML = `
+        <div class="date">
+          本日の試合情報はありません
+        </div>
+      `;
+      return;
+    }
+
+    const date = new Date(todayGame.date + "T00:00:00");
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+
+    gameInfo.innerHTML = `
+      <div class="date">
+        ${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日
+        （${weekdays[date.getDay()]}）
+      </div>
+
+      <div class="match">
+        北海道日本ハムファイターズ<br>
+        VS<br>
+        ${todayGame.opponent}
+      </div>
+
+      <div class="stadium">
+        📍 ${todayGame.stadium}<br>
+        🕐 ${todayGame.time}
+      </div>
+
+      <div class="deadline">
+        ⏰ 予想締切：試合開始2時間前
+      </div>
+    `;
+  })
+  .catch(error => {
+    console.error("試合情報の取得に失敗しました", error);
+
+    document.getElementById("gameInfo").innerHTML = `
+      <div class="date">
+        試合情報を取得できませんでした
+      </div>
+    `;
+  });
+</script>
+
+</body>
+</html>

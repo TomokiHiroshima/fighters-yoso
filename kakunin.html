@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>予想確認テスト</title>
+
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+}
+
+.header {
+    background: #0080c8;
+    color: white;
+    text-align: center;
+    padding: 18px 10px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.logo {
+    width: 180px;
+    max-width: 80%;
+}
+
+.header h1 {
+    margin: 8px 0 0;
+    color: white;
+    font-size: 28px;
+}
+
+.member {
+    background: white;
+    padding: 18px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.member h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #333;
+    font-size: 20px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 16px;
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.order {
+    width: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #0080c8;
+}
+
+.position {
+    width: 55px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #555;
+}
+
+.player {
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+}
+
+.no-data {
+    color: #888;
+    margin-bottom: 0;
+}
+
+.prediction-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.comparison-table {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.comparison-row {
+    display: grid;
+    grid-template-columns: 55px repeat(4, 1fr);
+    border-bottom: 1px solid #eee;
+}
+
+.comparison-row:last-child {
+    border-bottom: none;
+}
+
+.comparison-row > div {
+    padding: 10px 5px;
+    text-align: center;
+    border-right: 1px solid #eee;
+    font-size: 14px;
+}
+
+.comparison-row > div:last-child {
+    border-right: none;
+}
+
+.comparison-row.header {
+    font-weight: bold;
+    background: #0080c8;
+    color: white;
+}
+
+.comparison-row:not(.header) > div:first-child {
+    font-weight: bold;
+    color: #0080c8;
+}
+.same-player {
+    font-weight: bold;
+    background: #e8f6ff;
+}
+.comparison-note {
+    color: #888;
+    font-size: 13px;
+    margin-top: -8px;
+    margin-bottom: 10px;
+}
+.refresh-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 10px;
+    background: #0080c8;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+    <img src="logo.svg" alt="北海道日本ハムファイターズ" class="logo">
+
+    <h1>予想確認 ⚾️</h1>
+
+</div>
+
+<div class="date" id="gameInfo">
+    試合情報を読み込み中...
+</div>
+
+<button onclick="location.reload()" class="refresh-button">
+    🔄 最新の予想に更新
+</button>
+
+<div id="comparison"></div>
+
+<div id="result"></div>
+
+<div id="seasonRanking"></div>
+
+<button onclick="saveGameResult()" class="refresh-button">
+    🏆 この試合の結果を保存
+</button>
+
+</div>
+
+<script>
+
+const members = [
+    "ともき",
+    "えりか",
+    "ほのか",
+    "ゆな"
+];
+
+const result = document.getElementById("result");
+const comparison = document.getElementById("comparison");
+
+
+// ==============================
+// 正解スタメンを読み込む
+// ==============================
+
+const savedAnswer = localStorage.getItem("fightersAnswer");
+
+let answer = null;
+
+if (savedAnswer) {
+    answer = JSON.parse(savedAnswer);
+}
+
+
+// ==============================
+// 4人分の予想データを読み込む
+// ==============================
+
+const comparisonData = {};
+
+members.forEach(function(member) {
+
+    const savedData = localStorage.getItem(
+        "fightersPrediction_" + member
+    );
+
+    comparisonData[member] = {};
+
+    if (savedData) {
+
+        const data = JSON.parse(savedData);
+
+        data.prediction.forEach(function(player) {
+
+            comparisonData[member][player.battingOrder] = {
+                player: player.player,
+                position: player.position
+            };
+
+        });
+
+    }
+
+});
+
+
+// ==============================
+// 自動採点
+// ==============================
+
+const scores = {};
+
+members.forEach(function(member) {
+
+    scores[member] = 0;
+
+    if (!answer) {
+        return;
+    }
+
+    for (let i = 1; i <= 9; i++) {
+
+        const prediction =
+            comparisonData[member][i];
+
+        const correct =
+            answer.find(function(item) {
+                return item.battingOrder === i;
+            });
+
+        if (!prediction || !correct) {
+            continue;
+        }
+
+        if (
+            prediction.player === correct.player &&
+            prediction.position === correct.position
+        ) {
+
+            scores[member]++;
+
+        }
+
+    }
+
+});
+
+
+// ==============================
+// 点数に変換
+// ==============================
+
+const points = {};
+
+members.forEach(function(member) {
+
+    points[member] =
+        Math.round((scores[member] / 9) * 100);
+
+});
+
+
+// ==============================
+// ランキング
+// ==============================
+
+const ranking = members.slice().sort(function(a, b) {
+
+    return points[b] - points[a];
+
+});
+
+
+// ==============================
+// 点数表示
+// ==============================
+
+let scoreHtml = `
+
+    <div class="member">
+
+        <h2>🏆 現在のランキング</h2>
+
+`;
+
+ranking.forEach(function(member, index) {
+
+    scoreHtml += `
+
+        <div class="row">
+
+            <div class="order">
+                ${index + 1}位
+            </div>
+
+            <div class="player">
+                ${member}
+            </div>
+
+            <div class="position">
+                ${points[member]}点
+            </div>
+
+        </div>
+
+    `;
+
+});
+
+scoreHtml += `
+
+    </div>
+
+`;
+
+result.innerHTML = scoreHtml;
+
+
+// ==============================
+// みんなの予想比較表
+// ==============================
+
+let comparisonHtml = `
+
+    <h2>📊 みんなの予想を比較</h2>
+
+    <p class="comparison-note">
+        同じ選手を予想しているところが分かります
+    </p>
+
+    <div class="comparison-table">
+
+        <div class="comparison-row header">
+            <div>打順</div>
+            <div>ともき</div>
+            <div>えりか</div>
+            <div>ほのか</div>
+            <div>ゆな</div>
+        </div>
+
+`;
+
+
+// 1番～9番
+for (let i = 1; i <= 9; i++) {
+
+    const predictions = members.map(function(member) {
+
+        return comparisonData[member][i];
+
+    });
+
+
+    const playerNames = predictions.map(function(data) {
+
+        return data ? data.player : null;
+
+    });
+
+
+    comparisonHtml += `
+
+        <div class="comparison-row">
+
+            <div>${i}番</div>
+
+    `;
+
+
+    predictions.forEach(function(data) {
+
+        if (!data) {
+
+            comparisonHtml += `
+                <div>-</div>
+            `;
+
+            return;
+        }
+
+
+        const count = playerNames.filter(function(name) {
+
+            return name && name === data.player;
+
+        }).length;
+
+
+        const className =
+            count >= 2 ? "same-player" : "";
+
+
+        comparisonHtml += `
+
+            <div class="${className}">
+
+                <strong>${data.position}</strong><br>
+
+                ${data.player}
+
+            </div>
+
+        `;
+
+    });
+
+
+    comparisonHtml += `
+
+        </div>
+
+    `;
+
+}
+
+
+comparisonHtml += `
+
+    </div>
+
+`;
+
+comparison.innerHTML = comparisonHtml;
+
+
+// ==============================
+// 各メンバーの詳細予想
+// ==============================
+
+members.forEach(function(member) {
+
+    const savedData = localStorage.getItem(
+        "fightersPrediction_" + member
+    );
+
+
+    const box = document.createElement("div");
+
+    box.className = "member";
+
+
+    if (savedData) {
+
+        const data = JSON.parse(savedData);
+
+
+        let html = `
+
+            <h2>👤 ${member}</h2>
+
+            <div class="prediction-title">
+                予想スタメン
+            </div>
+
+        `;
+
+
+        data.prediction.forEach(function(player) {
+
+            html += `
+
+                <div class="row">
+
+                    <div class="order">
+                        ${player.battingOrder}番
+                    </div>
+
+                    <div class="position">
+                        ${player.position}
+                    </div>
+
+                    <div class="player">
+                        ${player.player}
+                    </div>
+
+                </div>
+
+            `;
+
+        });
+
+
+        box.innerHTML = html;
+
+
+    } else {
+
+        box.innerHTML = `
+
+            <h2>👤 ${member}</h2>
+
+            <p class="no-data">
+                まだ予想が登録されていません。
+            </p>
+
+        `;
+
+    }
+
+
+    result.appendChild(box);
+
+});
+function saveGameResult() {
+
+    const gameResult = {
+        date: new Date().toISOString(),
+        scores: points
+    };
+
+    localStorage.setItem(
+        "fightersGameResult_" + new Date().toISOString(),
+        JSON.stringify(gameResult)
+    );
+
+    alert("🏆 この試合の結果を保存しました！");
+}
+function showSeasonRanking() {
+
+    const totals = {};
+
+    members.forEach(function(member) {
+        totals[member] = 0;
+    });
+
+
+    // 保存されている試合結果を全部探す
+    for (let i = 0; i < localStorage.length; i++) {
+
+        const key = localStorage.key(i);
+
+        if (!key.startsWith("fightersGameResult_")) {
+            continue;
+        }
+
+        const savedData = localStorage.getItem(key);
+
+        const gameResult = JSON.parse(savedData);
+
+
+        members.forEach(function(member) {
+
+            if (gameResult.scores[member] !== undefined) {
+
+                totals[member] += gameResult.scores[member];
+
+            }
+
+        });
+
+    }
+
+
+    // ポイント順に並べる
+    const ranking = members.slice().sort(function(a, b) {
+
+        return totals[b] - totals[a];
+
+    });
+
+
+    // 表示
+    let html = `
+
+        <div class="member">
+
+            <h2>🏆 シーズン通算ランキング</h2>
+
+    `;
+
+
+    ranking.forEach(function(member, index) {
+
+        html += `
+
+            <div class="row">
+
+                <div class="order">
+                    ${index + 1}位
+                </div>
+
+                <div class="player">
+                    ${member}
+                </div>
+
+                <div class="position">
+                    ${totals[member]}点
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+    html += `
+
+        </div>
+
+    `;
+
+
+    document.getElementById("seasonRanking").innerHTML = html;
+
+}
+
+
+// ページを開いたら通算ランキングを表示
+showSeasonRanking();
+
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+fetch(GAS_URL)
+    .then(response => response.json())
+    .then(games => {
+
+        const today = new Date();
+
+        const todayString =
+            today.getFullYear() + "-" +
+            String(today.getMonth() + 1).padStart(2, "0") + "-" +
+            String(today.getDate()).padStart(2, "0");
+
+        const todayGame =
+            games.find(game => game.date === todayString);
+
+        const gameInfo =
+            document.getElementById("gameInfo");
+
+        if (!todayGame) {
+
+            gameInfo.innerHTML =
+                "本日の試合情報はありません";
+
+            return;
+        }
+
+        const date =
+            new Date(todayGame.date + "T00:00:00");
+
+        const weekdays =
+            ["日", "月", "火", "水", "木", "金", "土"];
+
+        gameInfo.innerHTML = `
+            <strong>
+                ${date.getFullYear()}年
+                ${date.getMonth() + 1}月
+                ${date.getDate()}日
+                （${weekdays[date.getDay()]}）
+            </strong>
+            <br><br>
+
+            北海道日本ハムファイターズ<br>
+            VS<br>
+            ${todayGame.opponent}
+
+            <br><br>
+
+            📍 ${todayGame.stadium}<br>
+            🕐 ${todayGame.time}
+        `;
+    })
+    .catch(error => {
+
+        console.error(
+            "試合情報の取得に失敗しました",
+            error
+        );
+
+        document.getElementById("gameInfo").textContent =
+            "試合情報を取得できませんでした";
+
+    });
+    
+</script>
+
+</body>
+</html>

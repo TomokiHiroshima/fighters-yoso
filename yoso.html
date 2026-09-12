@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スタメン予想</title>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .header {
+  background: #0080c8;
+  color: white;
+  text-align: center;
+  padding: 18px 10px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.logo {
+  width: 180px;
+  max-width: 80%;
+}
+
+h1 {
+  margin: 8px 0 0;
+  color: white;
+  font-size: 28px;
+}
+
+    .date {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    .box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: white;
+    }
+
+    .player-row {
+      background: #f8fbfd;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .batting-order {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #0080c8;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:active {
+      opacity: 0.8;
+    }
+
+    #message {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #008000;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+
+  <img src="logo.svg" alt="北海道日本ハムファイターズ" class="logo">
+
+  <h1>スタメン予想 ⚾️</h1>
+
+</div>
+
+<div class="date" id="gameInfo">
+  試合情報を読み込み中...
+</div>
+
+  <div class="box">
+
+    <label>予想する人</label>
+
+    <select id="member">
+      <option value="ともき">ともき</option>
+      <option value="えりか">えりか</option>
+      <option value="ほのか">ほのか</option>
+      <option value="ゆな">ゆな</option>
+    </select>
+
+  </div>
+
+  <div class="box">
+
+    <h2>スタメン予想</h2>
+
+    <div id="players"></div>
+
+    <p>※投手は採点対象外です</p>
+
+  </div>
+
+  <button onclick="savePrediction()">予想を登録する</button>
+
+  <div id="message"></div>
+
+</div>
+
+
+<script>
+
+const playerGroups = {
+  "捕手": [
+    "マルティネス",
+    "郡司裕也",
+    "清水優心",
+    "進藤勇也",
+    "リン",
+    "藤森海斗",
+    "吉田賢吾",
+    "田宮裕涼",
+    "梅林優貴",
+    "日渡騰輝"
+  ],
+
+  "内野手": [
+    "上川畑大悟",
+    "野村佑希",
+    "カストロ",
+    "清宮幸太郎",
+    "有薗直輝",
+    "水野達稀",
+    "阪口樂",
+    "大塚瑠晏",
+    "半田南十",
+    "山縣秀",
+    "細川凌平",
+    "奈良間大己",
+    "明瀬諒介",
+    "常谷拓輝",
+    "濵田泰希"
+  ],
+
+  "外野手": [
+    "西川遥輝",
+    "淺間大基",
+    "宮崎一樹",
+    "エドポロケイン",
+    "五十幡亮汰",
+    "水谷瞬",
+    "今川優馬",
+    "万波中正",
+    "レイエス",
+    "藤田大清",
+    "山口アタル",
+    "星野ひので"
+  ],
+
+  "投手": [
+    "矢澤宏太",
+    "生田目翼",
+    "加藤貴之",
+    "北山亘基",
+    "達孝太",
+    "伊藤大海",
+    "山﨑福也",
+    "玉井大翔",
+    "上原健太",
+    "金村尚真",
+    "宮西尚生",
+    "田中正義",
+    "大川慈英",
+    "河野竜生",
+    "細野晴希",
+    "ラオ",
+    "柴田獅子",
+    "藤田琉生",
+    "堀瑞輝",
+    "浅利太門",
+    "古林睿煬",
+    "島本浩也",
+    "福谷浩司",
+    "福島蓮",
+    "畔柳亨丞",
+    "柳川大晟",
+    "齋藤友貴哉",
+    "池田隆英",
+    "菊地大稀",
+    "清水大暉",
+    "山城航太郎",
+    "山本拓実",
+    "有原航平",
+    "松岡洸希",
+    "清宮虎多朗",
+    "孫易磊"
+  ],
+
+  "育成": [
+    "加藤大和",
+    "松本遼大",
+    "川勝空人",
+    "澁谷純希",
+    "横山永遠",
+    "福田俊",
+    "安西叶翔",
+    "根本悠楓"
+  ]
+};
+
+const positions = [
+  "捕",
+  "一",
+  "二",
+  "三",
+  "遊",
+  "左",
+  "中",
+  "右",
+  "指"
+];
+
+const defaultPositions = [
+  "左",
+  "遊",
+  "指",
+  "三",
+  "捕",
+  "一",
+  "右",
+  "二",
+  "中"
+];
+
+const defaultPlayers = [
+  "水谷瞬",
+  "水野達稀",
+  "フランミル・レイエス",
+  "野村佑希",
+  "郡司裕也",
+  "清宮幸太郎",
+  "万波中正",
+  "奈良間大己",
+  "五十幡亮汰"
+];
+
+
+const playersArea = document.getElementById("players");
+
+
+for (let i = 0; i < 9; i++) {
+
+  const row = document.createElement("div");
+  row.className = "player-row";
+
+  row.innerHTML = `
+    <div class="batting-order">${i + 1}番</div>
+
+    <label>守備位置</label>
+    <select class="position">
+      ${positions.map(position =>
+        `<option value="${position}" ${position === defaultPositions[i] ? "selected" : ""}>${position}</option>`
+      ).join("")}
+    </select>
+
+    <label>選手</label>
+    <select class="player">
+    ${Object.entries(playerGroups).map(([groupName, players]) => `
+  <optgroup label="${groupName}">
+    ${players.map(player =>
+      `<option value="${player}">${player}</option>`
+    ).join("")}
+  </optgroup>
+`).join("")}
+    </select>
+  `;
+
+  playersArea.appendChild(row);
+}
+
+
+function savePrediction() {
+
+  const member = document.getElementById("member").value;
+
+  const rows = document.querySelectorAll(".player-row");
+
+  const prediction = [];
+
+  rows.forEach((row, index) => {
+
+    const position = row.querySelector(".position").value;
+    const player = row.querySelector(".player").value;
+
+    prediction.push({
+      battingOrder: index + 1,
+      position: position,
+      player: player
+    });
+
+  });
+
+
+  const data = {
+    member: member,
+    prediction: prediction,
+    savedAt: new Date().toISOString()
+  };
+
+
+  localStorage.setItem(
+    "fightersPrediction_" + member,
+    JSON.stringify(data)
+  );
+
+
+  document.getElementById("message").textContent =
+    "✅ 予想を登録しました！";
+
+}
+
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+fetch(GAS_URL)
+  .then(response => response.json())
+  .then(games => {
+
+    const today = new Date();
+
+    const todayString =
+      today.getFullYear() + "-" +
+      String(today.getMonth() + 1).padStart(2, "0") + "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    const todayGame = games.find(game => game.date === todayString);
+
+    const gameInfo = document.getElementById("gameInfo");
+
+    if (!todayGame) {
+
+      gameInfo.innerHTML = `
+        本日の試合情報はありません
+      `;
+
+      return;
+    }
+
+    const date = new Date(todayGame.date + "T00:00:00");
+
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+
+    // 試合開始日時
+    const gameStart = new Date(
+      todayGame.date + "T" + todayGame.time + ":00+09:00"
+    );
+
+    // 締切は試合開始2時間前
+    const deadline = new Date(
+      gameStart.getTime() - 2 * 60 * 60 * 1000
+    );
+
+    // 現在時刻
+    const now = new Date();
+
+    // 締切後かどうか
+    const isClosed = now >= deadline;
+
+    // 締切時刻を表示
+    const deadlineTime =
+      String(deadline.getHours()).padStart(2, "0") +
+      ":" +
+      String(deadline.getMinutes()).padStart(2, "0");
+
+    gameInfo.innerHTML = `
+      <strong>
+        ${date.getFullYear()}年
+        ${date.getMonth() + 1}月
+        ${date.getDate()}日
+        （${weekdays[date.getDay()]}）
+      </strong>
+
+      <br><br>
+
+      北海道日本ハムファイターズ<br>
+      VS<br>
+      ${todayGame.opponent}
+
+      <br><br>
+
+      📍 ${todayGame.stadium}<br>
+      🕐 ${todayGame.time}
+
+      <div style="
+        background:${isClosed ? "#777" : "#d71920"};
+        color:white;
+        padding:10px;
+        border-radius:8px;
+        margin-top:12px;
+        font-weight:bold;
+      ">
+        ${isClosed
+          ? "⛔ 予想受付終了"
+          : "⏰ 予想締切：" + deadlineTime
+        }
+      </div>
+    `;
+
+    // 締切後なら入力欄を無効化
+    if (isClosed) {
+
+      document.querySelectorAll("select").forEach(function(select) {
+        select.disabled = true;
+      });
+
+      const saveButton =
+        document.querySelector('button[onclick="savePrediction()"]');
+
+      if (saveButton) {
+
+        saveButton.disabled = true;
+
+        saveButton.style.background = "#999";
+        saveButton.style.cursor = "not-allowed";
+
+        saveButton.textContent =
+          "⛔ 予想受付終了";
+      }
+
+      document.getElementById("message").textContent =
+        "本日のスタメン予想受付は終了しました。";
+
+      document.getElementById("message").style.color = "#d71920";
+    }
+
+  })
+  .catch(error => {
+
+    console.error(
+      "試合情報の取得に失敗しました",
+      error
+    );
+
+    document.getElementById("gameInfo").textContent =
+      "試合情報を取得できませんでした";
+
+  });
+
+</script>
+
+</body>
+</html>
