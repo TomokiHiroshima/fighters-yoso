@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>予想確認テスト</title>
+
+<title>予想確認</title>
 
 <style>
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
     background: #f5f5f5;
@@ -36,6 +38,12 @@ body {
     margin: 8px 0 0;
     color: white;
     font-size: 28px;
+}
+
+.date {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
 }
 
 .member {
@@ -136,16 +144,19 @@ body {
     font-weight: bold;
     color: #0080c8;
 }
+
 .same-player {
     font-weight: bold;
     background: #e8f6ff;
 }
+
 .comparison-note {
     color: #888;
     font-size: 13px;
     margin-top: -8px;
     margin-bottom: 10px;
 }
+
 .refresh-button {
     display: block;
     width: 100%;
@@ -160,40 +171,89 @@ body {
     cursor: pointer;
 }
 
+.home-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-bottom: 15px;
+    background-color: #0080c8;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.home-button:hover {
+    opacity: 0.85;
+}
+
+.score-box {
+    background: #f8fbfd;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.score-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0080c8;
+}
+
+.ranking-note {
+    color: #888;
+    font-size: 13px;
+    margin-top: -5px;
+}
+
 </style>
 </head>
 
 <body>
 
+<a href="index.html" class="home-button">
+    🏠 HOMEに戻る
+</a>
+
 <div class="container">
 
-<div class="header">
+    <div class="header">
 
-    <img src="logo.svg" alt="北海道日本ハムファイターズ" class="logo">
+        <img
+            src="logo.svg"
+            alt="北海道日本ハムファイターズ"
+            class="logo"
+        >
 
-    <h1>予想確認 ⚾️</h1>
+        <h1>予想確認 ⚾️</h1>
+
+    </div>
+
+    <div class="date" id="gameInfo">
+        試合情報を読み込み中...
+    </div>
+
+    <button
+        onclick="location.reload()"
+        class="refresh-button"
+    >
+        🔄 最新の予想に更新
+    </button>
+
+    <div id="comparison"></div>
+
+    <div id="result"></div>
+
+    <div id="seasonRanking"></div>
+
+    <button
+        onclick="saveGameResult()"
+        class="refresh-button"
+    >
+        🏆 この試合の結果を保存
+    </button>
 
 </div>
 
-<div class="date" id="gameInfo">
-    試合情報を読み込み中...
-</div>
-
-<button onclick="location.reload()" class="refresh-button">
-    🔄 最新の予想に更新
-</button>
-
-<div id="comparison"></div>
-
-<div id="result"></div>
-
-<div id="seasonRanking"></div>
-
-<button onclick="saveGameResult()" class="refresh-button">
-    🏆 この試合の結果を保存
-</button>
-
-</div>
 
 <script>
 
@@ -204,66 +264,126 @@ const members = [
     "ゆな"
 ];
 
-const result = document.getElementById("result");
-const comparison = document.getElementById("comparison");
+const result =
+    document.getElementById("result");
+
+const comparison =
+    document.getElementById("comparison");
 
 
-// ==============================
-// 正解スタメンを読み込む
-// ==============================
+// ========================================
+// 今日の日付
+// ========================================
 
-const savedAnswer = localStorage.getItem("fightersAnswer");
+const today = new Date();
+
+const todayString =
+    today.getFullYear() + "-" +
+    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    String(today.getDate()).padStart(2, "0");
+
+
+// ========================================
+// 正解スタメン
+// ========================================
+
+const savedAnswer =
+    localStorage.getItem("fightersAnswer");
 
 let answer = null;
 
 if (savedAnswer) {
-    answer = JSON.parse(savedAnswer);
+
+    try {
+
+        answer = JSON.parse(savedAnswer);
+
+    } catch (error) {
+
+        console.error(
+            "正解スタメンの読み込みに失敗しました",
+            error
+        );
+
+        answer = null;
+    }
+
 }
 
 
-// ==============================
-// 4人分の予想データを読み込む
-// ==============================
+// ========================================
+// 4人分の予想データ
+// ========================================
 
 const comparisonData = {};
 
 members.forEach(function(member) {
 
-    const savedData = localStorage.getItem(
-        "fightersPrediction_" + member
-    );
-
     comparisonData[member] = {};
 
-    if (savedData) {
+    const savedData =
+        localStorage.getItem(
+            "fightersPrediction_" + member
+        );
 
-        const data = JSON.parse(savedData);
+    if (!savedData) {
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(savedData);
+
+        // 今日の予想だけ表示
+        if (data.date !== todayString) {
+            return;
+        }
+
+        if (!data.prediction) {
+            return;
+        }
 
         data.prediction.forEach(function(player) {
 
-            comparisonData[member][player.battingOrder] = {
+            comparisonData[member][
+                player.battingOrder
+            ] = {
+
                 player: player.player,
+
                 position: player.position
+
             };
 
         });
+
+    } catch (error) {
+
+        console.error(
+            member + "の予想データ読み込み失敗",
+            error
+        );
 
     }
 
 });
 
 
-// ==============================
-// 自動採点
-// ==============================
+// ========================================
+// 採点
+// ========================================
 
 const scores = {};
+
+const points = {};
 
 members.forEach(function(member) {
 
     scores[member] = 0;
 
     if (!answer) {
+        points[member] = 0;
         return;
     }
 
@@ -274,7 +394,9 @@ members.forEach(function(member) {
 
         const correct =
             answer.find(function(item) {
+
                 return item.battingOrder === i;
+
             });
 
         if (!prediction || !correct) {
@@ -292,37 +414,31 @@ members.forEach(function(member) {
 
     }
 
-});
+    // 9人全部正解なら100点
+    if (scores[member] === 9) {
 
+        points[member] = 100;
 
-// ==============================
-// 点数に変換
-// ==============================
+    } else {
 
-const points = {};
+        points[member] = scores[member];
 
-members.forEach(function(member) {
-
-    points[member] =
-        scores[member] === 9 ? 100 : scores[member];
+    }
 
 });
 
 
-// ==============================
-// ランキング
-// ==============================
+// ========================================
+// 現在のランキング
+// ========================================
 
-const ranking = members.slice().sort(function(a, b) {
+const ranking =
+    members.slice().sort(function(a, b) {
 
-    return points[b] - points[a];
+        return points[b] - points[a];
 
-});
+    });
 
-
-// ==============================
-// 点数表示
-// ==============================
 
 let scoreHtml = `
 
@@ -332,29 +448,43 @@ let scoreHtml = `
 
 `;
 
-ranking.forEach(function(member, index) {
+if (!answer) {
 
     scoreHtml += `
 
-        <div class="row">
-
-            <div class="order">
-                ${index + 1}位
-            </div>
-
-            <div class="player">
-                ${member}
-            </div>
-
-            <div class="position">
-                ${points[member]}点
-            </div>
-
-        </div>
+        <p class="no-data">
+            まだ正解スタメンが登録されていません。
+        </p>
 
     `;
 
-});
+} else {
+
+    ranking.forEach(function(member, index) {
+
+        scoreHtml += `
+
+            <div class="row">
+
+                <div class="order">
+                    ${index + 1}位
+                </div>
+
+                <div class="player">
+                    ${member}
+                </div>
+
+                <div class="position">
+                    ${points[member]}点
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
 
 scoreHtml += `
 
@@ -365,9 +495,9 @@ scoreHtml += `
 result.innerHTML = scoreHtml;
 
 
-// ==============================
-// みんなの予想比較表
-// ==============================
+// ========================================
+// みんなの予想比較
+// ========================================
 
 let comparisonHtml = `
 
@@ -380,31 +510,34 @@ let comparisonHtml = `
     <div class="comparison-table">
 
         <div class="comparison-row header">
+
             <div>打順</div>
             <div>ともき</div>
             <div>えりか</div>
             <div>ほのか</div>
             <div>ゆな</div>
+
         </div>
 
 `;
 
 
-// 1番～9番
 for (let i = 1; i <= 9; i++) {
 
-    const predictions = members.map(function(member) {
+    const predictions =
+        members.map(function(member) {
 
-        return comparisonData[member][i];
+            return comparisonData[member][i];
 
-    });
+        });
 
 
-    const playerNames = predictions.map(function(data) {
+    const playerNames =
+        predictions.map(function(data) {
 
-        return data ? data.player : null;
+            return data ? data.player : null;
 
-    });
+        });
 
 
     comparisonHtml += `
@@ -425,25 +558,36 @@ for (let i = 1; i <= 9; i++) {
             `;
 
             return;
+
         }
 
 
-        const count = playerNames.filter(function(name) {
+        const count =
+            playerNames.filter(function(name) {
 
-            return name && name === data.player;
+                return (
+                    name &&
+                    name === data.player
+                );
 
-        }).length;
+            }).length;
 
 
         const className =
-            count >= 2 ? "same-player" : "";
+            count >= 2
+                ? "same-player"
+                : "";
 
 
         comparisonHtml += `
 
             <div class="${className}">
 
-                <strong>${data.position}</strong><br>
+                <strong>
+                    ${data.position}
+                </strong>
+
+                <br>
 
                 ${data.player}
 
@@ -469,29 +613,58 @@ comparisonHtml += `
 
 `;
 
-comparison.innerHTML = comparisonHtml;
+comparison.innerHTML =
+    comparisonHtml;
 
 
-// ==============================
+// ========================================
 // 各メンバーの詳細予想
-// ==============================
+// ========================================
 
 members.forEach(function(member) {
 
-    const savedData = localStorage.getItem(
-        "fightersPrediction_" + member
-    );
+    const box =
+        document.createElement("div");
 
+    box.className =
+        "member";
 
-    const box = document.createElement("div");
+    let data = null;
 
-    box.className = "member";
-
+    const savedData =
+        localStorage.getItem(
+            "fightersPrediction_" + member
+        );
 
     if (savedData) {
 
-        const data = JSON.parse(savedData);
+        try {
 
+            const saved =
+                JSON.parse(savedData);
+
+            if (
+                saved.date === todayString &&
+                saved.prediction
+            ) {
+
+                data = saved;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                member + "の予想データ解析失敗",
+                error
+            );
+
+        }
+
+    }
+
+
+    if (data) {
 
         let html = `
 
@@ -515,11 +688,11 @@ members.forEach(function(member) {
                     </div>
 
                     <div class="position">
-                        ${player.position}
+                        ${player.position || "-"}
                     </div>
 
                     <div class="player">
-                        ${player.player}
+                        ${player.player || "-"}
                     </div>
 
                 </div>
@@ -529,8 +702,8 @@ members.forEach(function(member) {
         });
 
 
-        box.innerHTML = html;
-
+        box.innerHTML =
+            html;
 
     } else {
 
@@ -539,7 +712,7 @@ members.forEach(function(member) {
             <h2>👤 ${member}</h2>
 
             <p class="no-data">
-                まだ予想が登録されていません。
+                まだ今日の予想が登録されていません。
             </p>
 
         `;
@@ -550,70 +723,279 @@ members.forEach(function(member) {
     result.appendChild(box);
 
 });
+
+
+// ========================================
+// 試合情報
+// ========================================
+
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+
+let todayGame = null;
+
+
+fetch(GAS_URL)
+
+    .then(function(response) {
+
+        return response.json();
+
+    })
+
+    .then(function(games) {
+
+        todayGame =
+            games.find(function(game) {
+
+                return game.date === todayString;
+
+            });
+
+
+        const gameInfo =
+            document.getElementById("gameInfo");
+
+
+        if (!todayGame) {
+
+            gameInfo.innerHTML =
+                "本日の試合情報はありません";
+
+            return;
+
+        }
+
+
+        const date =
+            new Date(
+                todayGame.date +
+                "T00:00:00"
+            );
+
+
+        const weekdays =
+            [
+                "日",
+                "月",
+                "火",
+                "水",
+                "木",
+                "金",
+                "土"
+            ];
+
+
+        gameInfo.innerHTML = `
+
+            <strong>
+
+                ${date.getFullYear()}年
+                ${date.getMonth() + 1}月
+                ${date.getDate()}日
+                （${weekdays[date.getDay()]}）
+
+            </strong>
+
+            <br><br>
+
+            北海道日本ハムファイターズ
+
+            <br>
+
+            VS
+
+            <br>
+
+            ${todayGame.opponent}
+
+            <br><br>
+
+            📍 ${todayGame.stadium}
+
+            <br>
+
+            🕐 ${todayGame.time}
+
+        `;
+
+    })
+
+    .catch(function(error) {
+
+        console.error(
+            "試合情報の取得に失敗しました",
+            error
+        );
+
+
+        document.getElementById("gameInfo")
+            .textContent =
+            "試合情報を取得できませんでした";
+
+    });
+
+
+// ========================================
+// 試合結果を保存
+// ========================================
+
 function saveGameResult() {
 
+    if (!answer) {
+
+        alert(
+            "正解スタメンがまだ登録されていません。"
+        );
+
+        return;
+
+    }
+
+
+    const gameDate =
+        todayGame
+            ? todayGame.date
+            : todayString;
+
+
+    const opponent =
+        todayGame
+            ? todayGame.opponent
+            : "";
+
+
     const gameResult = {
-        date: new Date().toISOString(),
-        scores: points
+
+        gameDate: gameDate,
+
+        opponent: opponent,
+
+        scores: points,
+
+        savedAt:
+            new Date().toISOString()
+
     };
 
+
+    const storageKey =
+        "fightersGameResultV2_" +
+        gameDate;
+
+
     localStorage.setItem(
-        "fightersGameResult_" + new Date().toISOString(),
+        storageKey,
         JSON.stringify(gameResult)
     );
 
-    alert("🏆 この試合の結果を保存しました！");
+
+    alert(
+        "🏆 この試合の結果を保存しました！"
+    );
+
+
+    showSeasonRanking();
+
 }
+
+
+// ========================================
+// シーズン通算ランキング
+// ========================================
+
 function showSeasonRanking() {
 
     const totals = {};
 
     members.forEach(function(member) {
+
         totals[member] = 0;
+
     });
 
 
-    // 保存されている試合結果を全部探す
-    for (let i = 0; i < localStorage.length; i++) {
+    for (
+        let i = 0;
+        i < localStorage.length;
+        i++
+    ) {
 
-        const key = localStorage.key(i);
+        const key =
+            localStorage.key(i);
 
-        if (!key.startsWith("fightersGameResult_")) {
+
+        // 新しい形式だけ集計
+        if (
+            !key.startsWith(
+                "fightersGameResultV2_"
+            )
+        ) {
+
+            continue;
+
+        }
+
+
+        const savedData =
+            localStorage.getItem(key);
+
+
+        if (!savedData) {
             continue;
         }
 
-        const savedData = localStorage.getItem(key);
 
-        const gameResult = JSON.parse(savedData);
+        try {
+
+            const gameResult =
+                JSON.parse(savedData);
 
 
-        members.forEach(function(member) {
+            members.forEach(function(member) {
 
-            if (gameResult.scores[member] !== undefined) {
+                if (
+                    gameResult.scores &&
+                    gameResult.scores[member] !== undefined
+                ) {
 
-                totals[member] += gameResult.scores[member];
+                    totals[member] +=
+                        gameResult.scores[member];
 
-            }
+                }
 
-        });
+            });
+
+        } catch (error) {
+
+            console.error(
+                "試合結果の読み込みに失敗しました",
+                error
+            );
+
+        }
 
     }
 
 
-    // ポイント順に並べる
-    const ranking = members.slice().sort(function(a, b) {
+    const ranking =
+        members.slice().sort(function(a, b) {
 
-        return totals[b] - totals[a];
+            return totals[b] - totals[a];
 
-    });
+        });
 
 
-    // 表示
     let html = `
 
         <div class="member">
 
             <h2>🏆 シーズン通算ランキング</h2>
+
+            <p class="ranking-note">
+                新しい形式で保存した試合のみ集計しています
+            </p>
 
     `;
 
@@ -650,78 +1032,16 @@ function showSeasonRanking() {
     `;
 
 
-    document.getElementById("seasonRanking").innerHTML = html;
+    document.getElementById(
+        "seasonRanking"
+    ).innerHTML = html;
 
 }
 
 
-// ページを開いたら通算ランキングを表示
+// ページを開いたら表示
 showSeasonRanking();
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
-
-fetch(GAS_URL)
-    .then(response => response.json())
-    .then(games => {
-
-        const today = new Date();
-
-        const todayString =
-            today.getFullYear() + "-" +
-            String(today.getMonth() + 1).padStart(2, "0") + "-" +
-            String(today.getDate()).padStart(2, "0");
-
-        const todayGame =
-            games.find(game => game.date === todayString);
-
-        const gameInfo =
-            document.getElementById("gameInfo");
-
-        if (!todayGame) {
-
-            gameInfo.innerHTML =
-                "本日の試合情報はありません";
-
-            return;
-        }
-
-        const date =
-            new Date(todayGame.date + "T00:00:00");
-
-        const weekdays =
-            ["日", "月", "火", "水", "木", "金", "土"];
-
-        gameInfo.innerHTML = `
-            <strong>
-                ${date.getFullYear()}年
-                ${date.getMonth() + 1}月
-                ${date.getDate()}日
-                （${weekdays[date.getDay()]}）
-            </strong>
-            <br><br>
-
-            北海道日本ハムファイターズ<br>
-            VS<br>
-            ${todayGame.opponent}
-
-            <br><br>
-
-            📍 ${todayGame.stadium}<br>
-            🕐 ${todayGame.time}
-        `;
-    })
-    .catch(error => {
-
-        console.error(
-            "試合情報の取得に失敗しました",
-            error
-        );
-
-        document.getElementById("gameInfo").textContent =
-            "試合情報を取得できませんでした";
-
-    });
-    
 </script>
 
 </body>
