@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -11,6 +12,7 @@
       background: #f5f5f5;
       margin: 0;
       padding: 20px;
+      padding-bottom: 390px;
     }
 
     .container {
@@ -127,60 +129,241 @@
     .home-button:hover {
       opacity: 0.85;
     }
+
+
+    /* =========================
+       現在の予想 固定パネル
+       ========================= */
+
+    .preview-panel {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      border-top: 3px solid #0080c8;
+      box-shadow: 0 -3px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-height: 42vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-header {
+      background: #0080c8;
+      color: white;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .preview-header-title {
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .preview-toggle {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .preview-content {
+      overflow-y: auto;
+      padding: 5px 15px 12px;
+    }
+
+    .preview-row {
+      display: flex;
+      align-items: center;
+      min-height: 30px;
+      border-bottom: 1px solid #eee;
+      font-size: 15px;
+    }
+
+    .preview-row:last-child {
+      border-bottom: none;
+    }
+
+    .preview-number {
+      width: 35px;
+      font-weight: bold;
+    }
+
+    .preview-position {
+      width: 40px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .preview-player {
+      flex: 1;
+      font-weight: bold;
+      padding-left: 8px;
+    }
+
+    .not-selected {
+      color: #aaa;
+      font-weight: normal;
+    }
+
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 8px 10px;
+      border-radius: 8px;
+      margin: 8px 0 0;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    /* パネルを閉じた状態 */
+
+    .preview-panel.collapsed {
+      max-height: none;
+    }
+
+    .preview-panel.collapsed .preview-content {
+      display: none;
+    }
+
+
+    /* スマホ用 */
+
+    @media (max-width: 600px) {
+
+      body {
+        padding: 12px;
+        padding-bottom: 330px;
+      }
+
+      .header {
+        padding: 14px 8px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .logo {
+        width: 150px;
+      }
+
+      .preview-panel {
+        max-height: 38vh;
+      }
+
+      .preview-header {
+        padding: 9px 12px;
+      }
+
+      .preview-content {
+        padding: 3px 12px 8px;
+      }
+
+      .preview-row {
+        min-height: 27px;
+        font-size: 14px;
+      }
+
+      .preview-number {
+        width: 30px;
+      }
+
+      .preview-position {
+        width: 35px;
+      }
+
+    }
+
   </style>
+
 </head>
 
 <body>
 
-  <a href="index.html" class="home-button">🏠 HOMEに戻る</a>
+<a href="index.html" class="home-button">🏠 HOMEに戻る</a>
 
   <div class="container">
 
-    <div class="header">
 
-      <img src="logo.svg"
-           alt="北海道日本ハムファイターズ"
-           class="logo">
+<div class="header">
 
-      <h1>スタメン予想 ⚾️</h1>
+  <img src="logo.svg"
+       alt="北海道日本ハムファイターズ"
+       class="logo">
 
-    </div>
+  <h1>スタメン予想 ⚾️</h1>
 
-    <div class="date" id="gameInfo">
-      試合情報を読み込み中...
-    </div>
+</div>
 
-    <div class="box">
+<div class="date" id="gameInfo">
+  試合情報を読み込み中...
+</div>
 
-      <label>予想する人</label>
+<div class="box">
 
-      <select id="member">
-        <option value="ともき" selected>ともき</option>
-        <option value="えりか">えりか</option>
-        <option value="ほのか">ほのか</option>
-        <option value="ゆな">ゆな</option>
-      </select>
+  <label>予想する人</label>
 
-    </div>
+  <select id="member">
+    <option value="ともき" selected>ともき</option>
+    <option value="えりか">えりか</option>
+    <option value="ほのか">ほのか</option>
+    <option value="ゆな">ゆな</option>
+  </select>
 
-    <div class="box">
+</div>
 
-      <h2>スタメン予想</h2>
+<div class="box">
 
-      <div id="players"></div>
+  <h2>スタメン予想を入力</h2>
 
-      <p>※投手は採点対象外です</p>
+  <div id="players"></div>
 
-    </div>
+  <p>※投手は採点対象外です</p>
 
-    <button onclick="savePrediction()">
-      予想を登録する
-    </button>
+</div>
 
-    <div id="message"></div>
+<button onclick="savePrediction()">
+  予想を登録する
+</button>
+
+<div id="message"></div>
+
 
   </div>
 
+  <!-- =========================
+       現在の予想 固定パネル
+       ========================= -->
+
+  <div class="preview-panel" id="previewPanel">
+
+
+<div class="preview-header" onclick="togglePreview()">
+
+  <div class="preview-header-title">
+    ⚾ 現在の予想
+  </div>
+
+  <div class="preview-toggle" id="previewToggle">
+    ▼
+  </div>
+
+</div>
+
+<div class="preview-content">
+
+  <div id="preview"></div>
+
+  <div id="duplicateWarning"></div>
+
+</div>
+
+
+  </div>
 
 <script>
 
@@ -303,8 +486,6 @@ const playersArea =
   document.getElementById("players");
 
 
-// 1番～9番を作成
-// 開いた時は必ずすべて空欄
 for (let i = 0; i < 9; i++) {
 
   const row =
@@ -366,7 +547,158 @@ for (let i = 0; i < 9; i++) {
 }
 
 
+// =========================
+// 現在の予想を更新
+// =========================
+
+function updatePreview() {
+
+  const rows =
+    document.querySelectorAll(".player-row");
+
+  const preview =
+    document.getElementById("preview");
+
+  const selectedPlayers = [];
+
+  let html = "";
+
+
+  rows.forEach((row, index) => {
+
+    const position =
+      row.querySelector(".position").value;
+
+    const player =
+      row.querySelector(".player").value;
+
+
+    if (player) {
+      selectedPlayers.push(player);
+    }
+
+
+    html += `
+
+      <div class="preview-row">
+
+        <div class="preview-number">
+          ${index + 1}
+        </div>
+
+        <div class="preview-position">
+          ${position || "－"}
+        </div>
+
+        <div class="preview-player
+          ${player ? "" : "not-selected"}">
+
+          ${player || "選手未選択"}
+
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+
+  preview.innerHTML = html;
+
+
+  // 重複チェック
+
+  const duplicates =
+    selectedPlayers.filter(
+      (player, index) =>
+        selectedPlayers.indexOf(player) !== index
+    );
+
+
+  const warning =
+    document.getElementById("duplicateWarning");
+
+
+  if (duplicates.length > 0) {
+
+    const uniqueDuplicates =
+      [...new Set(duplicates)];
+
+    warning.innerHTML = `
+      <div class="warning">
+        ⚠️ 同じ選手が複数の打順に選択されています：<br>
+        ${uniqueDuplicates.join("、")}
+      </div>
+    `;
+
+  } else {
+
+    warning.innerHTML = "";
+
+  }
+
+}
+
+
+// =========================
+// 入力変更時に即更新
+// =========================
+
+document.addEventListener(
+  "change",
+  function(event) {
+
+    if (
+      event.target.classList.contains("position") ||
+      event.target.classList.contains("player")
+    ) {
+
+      updatePreview();
+
+    }
+
+  }
+);
+
+
+// =========================
+// パネル開閉
+// =========================
+
+function togglePreview() {
+
+  const panel =
+    document.getElementById("previewPanel");
+
+  const toggle =
+    document.getElementById("previewToggle");
+
+
+  panel.classList.toggle("collapsed");
+
+
+  if (panel.classList.contains("collapsed")) {
+
+    toggle.textContent = "▲";
+
+  } else {
+
+    toggle.textContent = "▼";
+
+  }
+
+}
+
+
+// 最初から表示
+updatePreview();
+
+
+// =========================
 // 予想を保存
+// =========================
+
 function savePrediction() {
 
   const member =
@@ -483,7 +815,6 @@ fetch(GAS_URL)
       ["日", "月", "火", "水", "木", "金", "土"];
 
 
-    // 試合開始日時
     const gameStart =
       new Date(
         todayGame.date +
@@ -493,7 +824,6 @@ fetch(GAS_URL)
       );
 
 
-    // 締切は試合開始2時間前
     const deadline =
       new Date(
         gameStart.getTime() -
@@ -501,17 +831,14 @@ fetch(GAS_URL)
       );
 
 
-    // 現在時刻
     const now =
       new Date();
 
 
-    // 締切後かどうか
     const isClosed =
       now >= deadline;
 
 
-    // 締切時刻
     const deadlineTime =
       String(
         deadline.getHours()
@@ -573,6 +900,7 @@ fetch(GAS_URL)
 
 
     // 締切後なら入力欄を無効化
+
     if (isClosed) {
 
       document
