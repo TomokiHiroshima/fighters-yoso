@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -94,10 +95,27 @@ button {
     color: #008000;
 }
 
+.home-button {
+  display: inline-block;
+  padding: 10px 20px;
+  margin-bottom: 15px;
+  background-color: #0080c8;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.home-button:hover {
+  opacity: 0.85;
+}
+
 </style>
 </head>
 
 <body>
+
+<a href="index.html" class="home-button">🏠 HOMEに戻る</a>
 
 <div class="container">
 
@@ -111,9 +129,9 @@ button {
 
     </div>
 
-<div class="date" id="gameInfo">
-    試合情報を読み込み中...
-</div>
+    <div class="date" id="gameInfo">
+        試合情報を読み込み中...
+    </div>
 
     <div class="box">
 
@@ -125,7 +143,6 @@ button {
 
     </div>
 
-
     <button onclick="saveAnswer()">
         正解スタメンを登録する
     </button>
@@ -134,10 +151,10 @@ button {
 
 </div>
 
-
 <script>
 
 const playerGroups = {
+
   "捕手": [
     "マルティネス",
     "郡司裕也",
@@ -233,6 +250,7 @@ const playerGroups = {
     "安西叶翔",
     "根本悠楓"
   ]
+
 };
 
 
@@ -249,40 +267,19 @@ const positions = [
 ];
 
 
-const defaultPositions = [
-    "左",
-    "遊",
-    "指",
-    "三",
-    "捕",
-    "一",
-    "右",
-    "二",
-    "中"
-];
+const playersArea =
+    document.getElementById("players");
 
 
-const defaultPlayers = [
-    "水谷瞬",
-    "水野達稀",
-    "フランミル・レイエス",
-    "野村佑希",
-    "郡司裕也",
-    "清宮幸太郎",
-    "万波中正",
-    "奈良間大己",
-    "五十幡亮汰"
-];
-
-
-const playersArea = document.getElementById("players");
-
-
+// 1番～9番を作成
+// 最初はすべて空欄
 for (let i = 0; i < 9; i++) {
 
-    const row = document.createElement("div");
+    const row =
+        document.createElement("div");
 
-    row.className = "player-row";
+    row.className =
+        "player-row";
 
     row.innerHTML = `
 
@@ -294,30 +291,40 @@ for (let i = 0; i < 9; i++) {
 
         <select class="position">
 
+            <option value="">
+                守備位置を選択してください
+            </option>
+
             ${positions.map(position =>
-                `<option value="${position}"
-                    ${position === defaultPositions[i] ? "selected" : ""}>
+                `<option value="${position}">
                     ${position}
                 </option>`
             ).join("")}
 
         </select>
 
-
         <label>選手</label>
 
         <select class="player">
 
-            ${Object.entries(playerGroups).map(([groupName, players]) => `
-    <optgroup label="${groupName}">
-        ${players.map(player =>
-            `<option value="${player}"
-                ${player === defaultPlayers[i] ? "selected" : ""}>
-                ${player}
-            </option>`
-        ).join("")}
-    </optgroup>
-`).join("")}
+            <option value="">
+                選手を選択してください
+            </option>
+
+            ${Object.entries(playerGroups).map(
+                ([groupName, players]) => `
+
+                <optgroup label="${groupName}">
+
+                    ${players.map(player =>
+                        `<option value="${player}">
+                            ${player}
+                        </option>`
+                    ).join("")}
+
+                </optgroup>
+
+            `).join("")}
 
         </select>
 
@@ -328,13 +335,13 @@ for (let i = 0; i < 9; i++) {
 }
 
 
+// 正解スタメンを保存
 function saveAnswer() {
 
     const rows =
         document.querySelectorAll(".player-row");
 
     const answer = [];
-
 
     rows.forEach(function(row, index) {
 
@@ -343,7 +350,6 @@ function saveAnswer() {
 
         const player =
             row.querySelector(".player").value;
-
 
         answer.push({
 
@@ -368,47 +374,88 @@ function saveAnswer() {
         "✅ 正解スタメンを登録しました！";
 
 }
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+
+// 試合情報取得
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
 
 fetch(GAS_URL)
-  .then(response => response.json())
+
+  .then(response =>
+      response.json()
+  )
+
   .then(games => {
 
-    const today = new Date();
+    const today =
+        new Date();
 
     const todayString =
-      today.getFullYear() + "-" +
-      String(today.getMonth() + 1).padStart(2, "0") + "-" +
-      String(today.getDate()).padStart(2, "0");
+        today.getFullYear() + "-" +
+        String(today.getMonth() + 1).padStart(2, "0") + "-" +
+        String(today.getDate()).padStart(2, "0");
 
-    const todayGame = games.find(game => game.date === todayString);
 
-    const gameInfo = document.getElementById("gameInfo");
+    const todayGame =
+        games.find(
+            game => game.date === todayString
+        );
+
+
+    const gameInfo =
+        document.getElementById("gameInfo");
+
 
     if (!todayGame) {
-      gameInfo.innerHTML = `
-        本日の試合情報はありません
-      `;
-      return;
+
+        gameInfo.innerHTML =
+            "本日の試合情報はありません";
+
+        return;
     }
 
-    const date = new Date(todayGame.date + "T00:00:00");
 
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    const date =
+        new Date(
+            todayGame.date + "T00:00:00"
+        );
+
+
+    const weekdays =
+        ["日", "月", "火", "水", "木", "金", "土"];
+
 
     gameInfo.innerHTML = `
+
       <strong>
-        ${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日
+
+        ${date.getFullYear()}年
+        ${date.getMonth() + 1}月
+        ${date.getDate()}日
         （${weekdays[date.getDay()]}）
+
       </strong>
+
       <br><br>
 
-      北海道日本ハムファイターズ<br>
-      VS<br>
+      北海道日本ハムファイターズ
+
+      <br>
+
+      VS
+
+      <br>
+
       ${todayGame.opponent}
+
       <br><br>
 
-      📍 ${todayGame.stadium}<br>
+      📍 ${todayGame.stadium}
+
+      <br>
+
       🕐 ${todayGame.time}
 
       <div style="
@@ -419,20 +466,29 @@ fetch(GAS_URL)
         margin-top:12px;
         font-weight:bold;
       ">
+
         ⏰ 正解スタメン登録
+
       </div>
+
     `;
+
   })
+
   .catch(error => {
 
-    console.error("試合情報の取得に失敗しました", error);
+    console.error(
+        "試合情報の取得に失敗しました",
+        error
+    );
 
     document.getElementById("gameInfo").textContent =
-      "試合情報を取得できませんでした";
+        "試合情報を取得できませんでした";
 
   });
-  
+
 </script>
 
 </body>
 </html>
+```
