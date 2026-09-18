@@ -252,7 +252,7 @@
       }
 
       .preview-panel {
-        max-height: 38vh;
+        max-height: 45vh;
       }
 
       .preview-header {
@@ -356,12 +356,11 @@
 
 <div class="preview-content">
 
-  <div id="preview"></div>
-
   <div id="duplicateWarning"></div>
 
-</div>
+  <div id="preview"></div>
 
+</div>
 
   </div>
 
@@ -566,42 +565,42 @@ function updatePreview() {
 
   rows.forEach((row, index) => {
 
-    const position =
-      row.querySelector(".position").value;
+  const position =
+    row.querySelector(".position").value;
 
-    const player =
-      row.querySelector(".player").value;
-
-
-    if (player) {
-      selectedPlayers.push(player);
-    }
+  const player =
+    row.querySelector(".player").value;
 
 
-    html += `
+  if (player) {
+    selectedPlayers.push(player);
+  }
 
-      <div class="preview-row">
 
-        <div class="preview-number">
-          ${index + 1}
-        </div>
+  html += `
 
-        <div class="preview-position">
-          ${position || "－"}
-        </div>
+    <div class="preview-row" data-player="${player}">
 
-        <div class="preview-player
-          ${player ? "" : "not-selected"}">
+      <div class="preview-number">
+        ${index + 1}
+      </div>
 
-          ${player || "選手未選択"}
+      <div class="preview-position">
+        ${position || "－"}
+      </div>
 
-        </div>
+      <div class="preview-player
+        ${player ? "" : "not-selected"}">
+
+        ${player || "選手未選択"}
 
       </div>
 
-    `;
+    </div>
 
-  });
+  `;
+
+});
 
 
   preview.innerHTML = html;
