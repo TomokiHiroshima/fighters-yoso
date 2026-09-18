@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -19,24 +20,24 @@
     }
 
     .header {
-  background: #0080c8;
-  color: white;
-  text-align: center;
-  padding: 18px 10px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-}
+      background: #0080c8;
+      color: white;
+      text-align: center;
+      padding: 18px 10px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
 
-.logo {
-  width: 180px;
-  max-width: 80%;
-}
+    .logo {
+      width: 180px;
+      max-width: 80%;
+    }
 
-h1 {
-  margin: 8px 0 0;
-  color: white;
-  font-size: 28px;
-}
+    h1 {
+      margin: 8px 0 0;
+      color: white;
+      font-size: 28px;
+    }
 
     .date {
       text-align: center;
@@ -65,6 +66,11 @@ h1 {
       border-radius: 8px;
       border: 1px solid #ccc;
       background: white;
+    }
+
+    select:disabled {
+      background: #eeeeee;
+      color: #777;
     }
 
     .player-row {
@@ -96,64 +102,91 @@ h1 {
       opacity: 0.8;
     }
 
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
     #message {
       text-align: center;
       margin-top: 15px;
       font-weight: bold;
       color: #008000;
     }
+
+    .home-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin-bottom: 15px;
+      background-color: #0080c8;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .home-button:hover {
+      opacity: 0.85;
+    }
   </style>
 </head>
 
 <body>
 
-<div class="container">
+  <a href="index.html" class="home-button">🏠 HOMEに戻る</a>
 
-  <div class="header">
+  <div class="container">
 
-  <img src="logo.svg" alt="北海道日本ハムファイターズ" class="logo">
+    <div class="header">
 
-  <h1>スタメン予想 ⚾️</h1>
+      <img src="logo.svg"
+           alt="北海道日本ハムファイターズ"
+           class="logo">
 
-</div>
+      <h1>スタメン予想 ⚾️</h1>
 
-<div class="date" id="gameInfo">
-  試合情報を読み込み中...
-</div>
+    </div>
 
-  <div class="box">
+    <div class="date" id="gameInfo">
+      試合情報を読み込み中...
+    </div>
 
-    <label>予想する人</label>
+    <div class="box">
 
-    <select id="member">
-      <option value="ともき">ともき</option>
-      <option value="えりか">えりか</option>
-      <option value="ほのか">ほのか</option>
-      <option value="ゆな">ゆな</option>
-    </select>
+      <label>予想する人</label>
+
+      <select id="member">
+        <option value="ともき" selected>ともき</option>
+        <option value="えりか">えりか</option>
+        <option value="ほのか">ほのか</option>
+        <option value="ゆな">ゆな</option>
+      </select>
+
+    </div>
+
+    <div class="box">
+
+      <h2>スタメン予想</h2>
+
+      <div id="players"></div>
+
+      <p>※投手は採点対象外です</p>
+
+    </div>
+
+    <button onclick="savePrediction()">
+      予想を登録する
+    </button>
+
+    <div id="message"></div>
 
   </div>
-
-  <div class="box">
-
-    <h2>スタメン予想</h2>
-
-    <div id="players"></div>
-
-    <p>※投手は採点対象外です</p>
-
-  </div>
-
-  <button onclick="savePrediction()">予想を登録する</button>
-
-  <div id="message"></div>
-
-</div>
 
 
 <script>
 
 const playerGroups = {
+
   "捕手": [
     "マルティネス",
     "郡司裕也",
@@ -249,7 +282,9 @@ const playerGroups = {
     "安西叶翔",
     "根本悠楓"
   ]
+
 };
+
 
 const positions = [
   "捕",
@@ -263,91 +298,125 @@ const positions = [
   "指"
 ];
 
-const defaultPositions = [
-  "左",
-  "遊",
-  "指",
-  "三",
-  "捕",
-  "一",
-  "右",
-  "二",
-  "中"
-];
 
-const defaultPlayers = [
-  "水谷瞬",
-  "水野達稀",
-  "フランミル・レイエス",
-  "野村佑希",
-  "郡司裕也",
-  "清宮幸太郎",
-  "万波中正",
-  "奈良間大己",
-  "五十幡亮汰"
-];
+const playersArea =
+  document.getElementById("players");
 
 
-const playersArea = document.getElementById("players");
-
-
+// 1番～9番を作成
+// 開いた時は必ずすべて空欄
 for (let i = 0; i < 9; i++) {
 
-  const row = document.createElement("div");
-  row.className = "player-row";
+  const row =
+    document.createElement("div");
+
+  row.className =
+    "player-row";
 
   row.innerHTML = `
-    <div class="batting-order">${i + 1}番</div>
+
+    <div class="batting-order">
+      ${i + 1}番
+    </div>
 
     <label>守備位置</label>
+
     <select class="position">
+
+      <option value="" selected>
+        守備位置を選択してください
+      </option>
+
       ${positions.map(position =>
-        `<option value="${position}" ${position === defaultPositions[i] ? "selected" : ""}>${position}</option>`
+        `<option value="${position}">
+          ${position}
+        </option>`
       ).join("")}
+
     </select>
 
     <label>選手</label>
+
     <select class="player">
-    ${Object.entries(playerGroups).map(([groupName, players]) => `
-  <optgroup label="${groupName}">
-    ${players.map(player =>
-      `<option value="${player}">${player}</option>`
-    ).join("")}
-  </optgroup>
-`).join("")}
+
+      <option value="" selected>
+        選手を選択してください
+      </option>
+
+      ${Object.entries(playerGroups).map(
+        ([groupName, players]) => `
+
+        <optgroup label="${groupName}">
+
+          ${players.map(player =>
+            `<option value="${player}">
+              ${player}
+            </option>`
+          ).join("")}
+
+        </optgroup>
+
+      `).join("")}
+
     </select>
+
   `;
 
   playersArea.appendChild(row);
 }
 
 
+// 予想を保存
 function savePrediction() {
 
-  const member = document.getElementById("member").value;
+  const member =
+    document.getElementById("member").value;
 
-  const rows = document.querySelectorAll(".player-row");
+  const rows =
+    document.querySelectorAll(".player-row");
 
   const prediction = [];
 
   rows.forEach((row, index) => {
 
-    const position = row.querySelector(".position").value;
-    const player = row.querySelector(".player").value;
+    const position =
+      row.querySelector(".position").value;
+
+    const player =
+      row.querySelector(".player").value;
 
     prediction.push({
+
       battingOrder: index + 1,
+
       position: position,
+
       player: player
+
     });
 
   });
 
 
+  const today =
+    new Date();
+
+  const todayString =
+    today.getFullYear() + "-" +
+    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    String(today.getDate()).padStart(2, "0");
+
+
   const data = {
+
     member: member,
+
+    date: todayString,
+
     prediction: prediction,
+
     savedAt: new Date().toISOString()
+
   };
 
 
@@ -362,22 +431,37 @@ function savePrediction() {
 
 }
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
 
 fetch(GAS_URL)
-  .then(response => response.json())
+
+  .then(response =>
+    response.json()
+  )
+
   .then(games => {
 
-    const today = new Date();
+    const today =
+      new Date();
 
     const todayString =
       today.getFullYear() + "-" +
       String(today.getMonth() + 1).padStart(2, "0") + "-" +
       String(today.getDate()).padStart(2, "0");
 
-    const todayGame = games.find(game => game.date === todayString);
 
-    const gameInfo = document.getElementById("gameInfo");
+    const todayGame =
+      games.find(
+        game => game.date === todayString
+      );
+
+
+    const gameInfo =
+      document.getElementById("gameInfo");
+
 
     if (!todayGame) {
 
@@ -388,49 +472,85 @@ fetch(GAS_URL)
       return;
     }
 
-    const date = new Date(todayGame.date + "T00:00:00");
 
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    const date =
+      new Date(
+        todayGame.date + "T00:00:00"
+      );
+
+
+    const weekdays =
+      ["日", "月", "火", "水", "木", "金", "土"];
+
 
     // 試合開始日時
-    const gameStart = new Date(
-      todayGame.date + "T" + todayGame.time + ":00+09:00"
-    );
+    const gameStart =
+      new Date(
+        todayGame.date +
+        "T" +
+        todayGame.time +
+        ":00+09:00"
+      );
+
 
     // 締切は試合開始2時間前
-    const deadline = new Date(
-      gameStart.getTime() - 2 * 60 * 60 * 1000
-    );
+    const deadline =
+      new Date(
+        gameStart.getTime() -
+        2 * 60 * 60 * 1000
+      );
+
 
     // 現在時刻
-    const now = new Date();
+    const now =
+      new Date();
+
 
     // 締切後かどうか
-    const isClosed = now >= deadline;
+    const isClosed =
+      now >= deadline;
 
-    // 締切時刻を表示
+
+    // 締切時刻
     const deadlineTime =
-      String(deadline.getHours()).padStart(2, "0") +
+      String(
+        deadline.getHours()
+      ).padStart(2, "0") +
       ":" +
-      String(deadline.getMinutes()).padStart(2, "0");
+      String(
+        deadline.getMinutes()
+      ).padStart(2, "0");
+
 
     gameInfo.innerHTML = `
+
       <strong>
+
         ${date.getFullYear()}年
         ${date.getMonth() + 1}月
         ${date.getDate()}日
         （${weekdays[date.getDay()]}）
+
       </strong>
 
       <br><br>
 
-      北海道日本ハムファイターズ<br>
-      VS<br>
+      北海道日本ハムファイターズ
+
+      <br>
+
+      VS
+
+      <br>
+
       ${todayGame.opponent}
 
       <br><br>
 
-      📍 ${todayGame.stadium}<br>
+      📍 ${todayGame.stadium}
+
+      <br>
+
       🕐 ${todayGame.time}
 
       <div style="
@@ -441,41 +561,63 @@ fetch(GAS_URL)
         margin-top:12px;
         font-weight:bold;
       ">
+
         ${isClosed
           ? "⛔ 予想受付終了"
           : "⏰ 予想締切：" + deadlineTime
         }
+
       </div>
+
     `;
+
 
     // 締切後なら入力欄を無効化
     if (isClosed) {
 
-      document.querySelectorAll("select").forEach(function(select) {
-        select.disabled = true;
-      });
+      document
+        .querySelectorAll("select")
+        .forEach(function(select) {
+
+          select.disabled = true;
+
+        });
+
 
       const saveButton =
-        document.querySelector('button[onclick="savePrediction()"]');
+        document.querySelector(
+          'button[onclick="savePrediction()"]'
+        );
+
 
       if (saveButton) {
 
         saveButton.disabled = true;
 
-        saveButton.style.background = "#999";
-        saveButton.style.cursor = "not-allowed";
+        saveButton.style.background =
+          "#999";
+
+        saveButton.style.cursor =
+          "not-allowed";
 
         saveButton.textContent =
           "⛔ 予想受付終了";
+
       }
 
-      document.getElementById("message").textContent =
+
+      document.getElementById("message")
+        .textContent =
         "本日のスタメン予想受付は終了しました。";
 
-      document.getElementById("message").style.color = "#d71920";
+      document.getElementById("message")
+        .style.color =
+        "#d71920";
+
     }
 
   })
+
   .catch(error => {
 
     console.error(
@@ -483,7 +625,9 @@ fetch(GAS_URL)
       error
     );
 
-    document.getElementById("gameInfo").textContent =
+
+    document.getElementById("gameInfo")
+      .textContent =
       "試合情報を取得できませんでした";
 
   });
