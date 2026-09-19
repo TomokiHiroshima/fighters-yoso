@@ -697,6 +697,10 @@ updatePreview();
 // 今日登録した予想を読み込む
 // =========================
 
+// =========================
+// 今日登録した予想を読み込む
+// =========================
+
 function loadTodayPrediction() {
 
   const member =
@@ -711,34 +715,78 @@ function loadTodayPrediction() {
 
   if (!saved) return;
 
-  const data =
-    JSON.parse(saved);
+  let data;
 
-  const today =
-    new Date();
+  try {
 
-  const todayString =
-    today.getFullYear() + "-" +
-    String(today.getMonth() + 1).padStart(2, "0") + "-" +
-    String(today.getDate()).padStart(2, "0");
+    data = JSON.parse(saved);
 
-  // 今日の予想ではなければ読み込まない
-  if (data.date !== todayString) {
+  } catch (error) {
+
+    console.error(
+      "予想データの読み込みに失敗しました",
+      error
+    );
+
     return;
+
   }
+
+  // =========================
+  // 新しい保存形式
+  // =========================
+
+  let prediction = null;
+
+  if (
+    data &&
+    !Array.isArray(data) &&
+    data.prediction
+  ) {
+
+    const today =
+      new Date();
+
+    const todayString =
+      today.getFullYear() + "-" +
+      String(today.getMonth() + 1).padStart(2, "0") + "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    // 今日のデータだけ読み込む
+    if (data.date === todayString) {
+
+      prediction =
+        data.prediction;
+
+    }
+
+  }
+
+  // =========================
+  // 旧い保存形式
+  // =========================
+
+  if (Array.isArray(data)) {
+
+    prediction = data;
+
+  }
+
+  // 読み込める予想がなければ終了
+  if (!prediction) return;
 
   const rows =
     document.querySelectorAll(".player-row");
 
-  data.prediction.forEach(function(item, index) {
+  prediction.forEach(function(item, index) {
 
     if (!rows[index]) return;
 
     rows[index].querySelector(".position").value =
-      item.position;
+      item.position || "";
 
     rows[index].querySelector(".player").value =
-      item.player;
+      item.player || "";
 
   });
 
@@ -1020,7 +1068,7 @@ document.getElementById("member")
   });
 
   loadTodayPrediction();
-  
+
 </script>
 
 </body>
