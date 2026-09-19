@@ -150,6 +150,12 @@ body {
     background: #e8f6ff;
 }
 
+.correct-answer {
+    font-weight: bold;
+    background: #d9f2ff;
+    color: #0080c8;
+}
+
 .comparison-note {
     color: #888;
     font-size: 13px;
@@ -296,7 +302,15 @@ if (savedAnswer) {
 
     try {
 
-        answer = JSON.parse(savedAnswer);
+        const answerData =
+            JSON.parse(savedAnswer);
+
+        // 今日登録された正解スタメンだけ使用
+        if (answerData.date === todayString) {
+
+            answer = answerData.answer;
+
+        }
 
     } catch (error) {
 
@@ -573,10 +587,28 @@ for (let i = 1; i <= 9; i++) {
             }).length;
 
 
-        const className =
-            count >= 2
-                ? "same-player"
-                : "";
+        let className = "";
+
+if (answer) {
+
+    const correct =
+        answer.find(function(item) {
+
+            return (
+                item.battingOrder === i &&
+                item.player === data.player &&
+                item.position === data.position
+            );
+
+        });
+
+    if (correct) {
+
+        className = "correct-answer";
+
+    }
+
+}
 
 
         comparisonHtml += `
