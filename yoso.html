@@ -693,6 +693,58 @@ function togglePreview() {
 // 最初から表示
 updatePreview();
 
+// =========================
+// 今日登録した予想を読み込む
+// =========================
+
+function loadTodayPrediction() {
+
+  const member =
+    document.getElementById("member").value;
+
+  if (!member) return;
+
+  const saved =
+    localStorage.getItem(
+      "fightersPrediction_" + member
+    );
+
+  if (!saved) return;
+
+  const data =
+    JSON.parse(saved);
+
+  const today =
+    new Date();
+
+  const todayString =
+    today.getFullYear() + "-" +
+    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    String(today.getDate()).padStart(2, "0");
+
+  // 今日の予想ではなければ読み込まない
+  if (data.date !== todayString) {
+    return;
+  }
+
+  const rows =
+    document.querySelectorAll(".player-row");
+
+  data.prediction.forEach(function(item, index) {
+
+    if (!rows[index]) return;
+
+    rows[index].querySelector(".position").value =
+      item.position;
+
+    rows[index].querySelector(".player").value =
+      item.player;
+
+  });
+
+  updatePreview();
+
+}
 
 // =========================
 // 予想を保存
@@ -760,6 +812,7 @@ function savePrediction() {
   document.getElementById("message").textContent =
     "✅ 予想を登録しました！";
 
+    loadTodayPrediction();
 }
 
 
@@ -959,6 +1012,13 @@ fetch(GAS_URL)
 
   });
 
+document.getElementById("member")
+  .addEventListener("change", function() {
+
+    loadTodayPrediction();
+
+  });
+  
 </script>
 
 </body>
