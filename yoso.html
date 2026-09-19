@@ -851,16 +851,59 @@ function savePrediction() {
   };
 
 
+  // =========================
+  // 今までの保存も残す
+  // =========================
+
   localStorage.setItem(
     "fightersPrediction_" + member,
     JSON.stringify(data)
   );
 
 
-  document.getElementById("message").textContent =
-    "✅ 予想を登録しました！";
+  // =========================
+  // Googleスプレッドシートへ保存
+  // =========================
 
-    loadTodayPrediction();
+  const GAS_URL =
+    "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+
+  fetch(
+    GAS_URL +
+    "?action=savePrediction" +
+    "&date=" + encodeURIComponent(todayString) +
+    "&member=" + encodeURIComponent(member) +
+    "&prediction=" + encodeURIComponent(
+      JSON.stringify(prediction)
+    )
+  )
+  .then(response => response.json())
+  .then(result => {
+
+    if (result.success) {
+
+      document.getElementById("message").textContent =
+        "✅ 予想を登録しました！";
+
+    }
+
+  })
+  .catch(error => {
+
+    console.error(
+      "予想データの保存に失敗しました",
+      error
+    );
+
+    document.getElementById("message").textContent =
+      "⚠️ 予想を登録しましたが、共有保存に失敗しました";
+
+  });
+
+
+  loadTodayPrediction();
+
 }
 
 
