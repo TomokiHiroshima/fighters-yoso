@@ -400,19 +400,45 @@ members.forEach(function(member) {
 
     const data = JSON.parse(savedData);
 
-    if (
-      data.date !== todayString ||
-      !data.prediction
-    ) {
-      return;
-    }
+    let predictionData = null;
+// =========================
+// 新しい保存形式
+// =========================
+
+if (
+  data &&
+  !Array.isArray(data) &&
+  data.prediction
+) {
+
+  if (data.date === todayString) {
+
+    predictionData = data.prediction;
+  }
+
+}
+
+// =========================
+// 旧い保存形式
+// =========================
+
+if (Array.isArray(data)) {
+
+  predictionData = data;
+
+}
+
+// 予想データがなければ終了
+if (!predictionData) {
+  return;
+}
 
     let correctCount = 0;
 
     for (let i = 1; i <= 9; i++) {
 
       const prediction =
-        data.prediction.find(function(player) {
+        predictionData.find(function(player) {
           return player.battingOrder === i;
         });
 
