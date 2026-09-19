@@ -307,10 +307,32 @@ if (savedAnswer) {
     const answerData =
       JSON.parse(savedAnswer);
 
-    // 今日登録された正解スタメンだけ使用
-    if (answerData.date === todayString) {
+    // =========================
+    // 新しい保存形式
+    // =========================
 
-      answer = answerData.answer;
+    if (
+      answerData &&
+      !Array.isArray(answerData) &&
+      answerData.answer
+    ) {
+
+      // 今日登録された正解スタメンだけ使用
+      if (answerData.date === todayString) {
+
+        answer = answerData.answer;
+
+      }
+
+    }
+
+    // =========================
+    // 旧い保存形式
+    // =========================
+
+    if (Array.isArray(answerData)) {
+
+      answer = answerData;
 
     }
 
