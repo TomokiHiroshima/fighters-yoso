@@ -399,6 +399,10 @@ document.getElementById("message").textContent =
 // 今日の正解スタメンを読み込む
 // =========================
 
+// =========================
+// 今日の正解スタメンを読み込む
+// =========================
+
 function loadTodayAnswer() {
 
     const saved =
@@ -406,44 +410,88 @@ function loadTodayAnswer() {
 
     if (!saved) return;
 
-    const data =
-        JSON.parse(saved);
+    let data;
 
-    const today =
-        new Date();
+    try {
 
-    const todayString =
-        today.getFullYear() + "-" +
-        String(today.getMonth() + 1).padStart(2, "0") + "-" +
-        String(today.getDate()).padStart(2, "0");
+        data = JSON.parse(saved);
 
+    } catch (error) {
 
-    // 今日の登録データではなければ読み込まない
-    if (data.date !== todayString) {
+        console.error(
+            "正解スタメンの読み込みに失敗しました",
+            error
+        );
 
         return;
 
     }
+
+    // =========================
+    // 新しい保存形式
+    // =========================
+
+    let answer = null;
+
+    if (
+        data &&
+        !Array.isArray(data) &&
+        data.answer
+    ) {
+
+        const today =
+            new Date();
+
+        const todayString =
+            today.getFullYear() + "-" +
+            String(today.getMonth() + 1).padStart(2, "0") + "-" +
+            String(today.getDate()).padStart(2, "0");
+
+        // 今日の登録データだけ読み込む
+        if (data.date === todayString) {
+
+            answer =
+                data.answer;
+
+        }
+
+    }
+
+    // =========================
+    // 旧い保存形式
+    // =========================
+
+    if (Array.isArray(data)) {
+
+        answer = data;
+
+    }
+
+    // 読み込める正解スタメンがなければ終了
+    if (!answer) return;
 
 
     const rows =
         document.querySelectorAll(".player-row");
 
 
-    data.answer.forEach(function(item, index) {
+    answer.forEach(function(item, index) {
 
         if (!rows[index]) return;
 
         rows[index].querySelector(".position").value =
-            item.position;
+            item.position || "";
 
         rows[index].querySelector(".player").value =
-            item.player;
+            item.player || "";
 
     });
 
 
-    // 登録済みなので変更できないようにする
+    // =========================
+    // 登録済みなので変更できない
+    // =========================
+
     document
         .querySelectorAll("select")
         .forEach(function(select) {
