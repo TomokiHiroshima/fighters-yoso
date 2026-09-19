@@ -99,24 +99,6 @@
       border-bottom: none;
     }
 
-    .prediction-list {
-      background: white;
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .prediction-list h3 {
-      margin-top: 0;
-      border-bottom: 2px solid #ddd;
-      padding-bottom: 8px;
-    }
-
-    .prediction-list p {
-      color: #666;
-    }
-
     .predict-button {
       display: block;
       width: 100%;
@@ -135,13 +117,32 @@
     }
 
     /* 本日のスタメン */
-.lineup-card h2 {
-  margin-bottom: 8px;
-}
 
-#todayLineupList {
-  margin-bottom: 25px;
-}
+    .lineup-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .lineup-card h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    #todayLineupList {
+      margin-bottom: 10px;
+    }
+
+    .lineup-row {
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .lineup-row:last-child {
+      border-bottom: none;
+    }
 
   </style>
 </head>
@@ -149,148 +150,132 @@
 <body>
 
   <header>
-    <img src="logo.svg" alt="北海道日本ハムファイターズ" class="logo">
+
+    <img
+      src="logo.svg"
+      alt="北海道日本ハムファイターズ"
+      class="logo"
+    >
+
     <h2>スタメン予想 ⚾</h2>
+
   </header>
+
 
   <div class="container">
 
-    <!-- 試合情報 -->
-<div class="game-card" id="gameInfo">
 
-  <div class="date">
-    試合情報を読み込み中...
+    <!-- =========================
+         試合情報
+    ========================= -->
+
+    <div class="game-card" id="gameInfo">
+
+      <div class="date">
+        試合情報を読み込み中...
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         現在のランキング
+    ========================= -->
+
+    <div class="ranking-card">
+
+      <h3>🏆 現在のランキング</h3>
+
+      <div id="ranking">
+
+        <p>
+          ランキングを読み込み中…
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         本日のスタメン
+    ========================= -->
+
+    <div
+      class="lineup-card"
+      id="todayLineup"
+      style="display:none;"
+    >
+
+      <h2>
+        ⚾ 本日のスタメン
+      </h2>
+
+      <div id="todayLineupList"></div>
+
+    </div>
+
+
+    <!-- =========================
+         ボタン
+    ========================= -->
+
+    <button
+      class="predict-button"
+      onclick="location.href='yoso.html'"
+    >
+      スタメンを予想する ⚾
+    </button>
+
+
+    <button
+      class="predict-button"
+      onclick="location.href='kakunin.html'"
+      style="margin-top: 10px;"
+    >
+      みんなの予想を確認する 📊
+    </button>
+
+
+    <button
+      class="predict-button"
+      onclick="location.href='seikai.html'"
+      style="margin-top: 10px;"
+    >
+      正解スタメンを入力する ✅
+    </button>
+
+
   </div>
 
-</div>
 
-
-    <!-- 現在のランキング -->
-<div class="ranking-card">
-
-  <h3>🏆 現在のランキング</h3>
-
-  <div id="ranking">
-    <p>ランキングを読み込み中…</p>
-  </div>
-
-</div>
-
-<!-- 本日のスタメン -->
-<div class="lineup-card" id="todayLineup" style="display:none;">
-
-  <h2>⚾ 本日のスタメン</h2>
-
-  <div id="todayLineupList"></div>
-
-</div>
-
-<!-- みんなのスタメン予想 -->
-<div class="prediction-list">
-
-  <h3>⚾ みんなのスタメン予想</h3>
-
-  <div id="allPredictions">
-    <p>みんなの予想を読み込み中…</p>
-  </div>
-
-</div>
-
-    <!-- 予想ボタン -->
-    <button class="predict-button" onclick="location.href='yoso.html'">
-  スタメンを予想する ⚾
-</button>
-
-<button class="predict-button" onclick="location.href='kakunin.html'" style="margin-top: 10px;">
-  みんなの予想を確認する 📊
-</button>
-
-<button class="predict-button" onclick="location.href='seikai.html'" style="margin-top: 10px;">
-  正解スタメンを入力する ✅
-</button>
-
-  </div>
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
 
-fetch(GAS_URL)
-  .then(response => response.json())
-  .then(games => {
 
-    const today = new Date();
+// ==================================================
+// GAS
+// ==================================================
 
-    const todayString =
-      today.getFullYear() + "-" +
-      String(today.getMonth() + 1).padStart(2, "0") + "-" +
-      String(today.getDate()).padStart(2, "0");
+const GAS_URL =
+  "https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
 
-    const todayGame = games.find(game => game.date === todayString);
 
-    const gameInfo = document.getElementById("gameInfo");
+// ==================================================
+// 今日の日付
+// ==================================================
 
-    if (!todayGame) {
-      gameInfo.innerHTML = `
-        <div class="date">
-          本日の試合情報はありません
-        </div>
-      `;
-      return;
-    }
+const today =
+  new Date();
 
-    const date = new Date(todayGame.date + "T00:00:00");
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+const todayString =
+  today.getFullYear() + "-" +
+  String(today.getMonth() + 1).padStart(2, "0") + "-" +
+  String(today.getDate()).padStart(2, "0");
 
-    console.log("試合開始時刻:", todayGame.time);
 
-    // 試合開始時刻から1時間30分前を計算
-const gameDateTime = new Date(
-  todayGame.date + "T" + todayGame.time + ":00"
-);
-
-const deadlineDateTime = new Date(
-  gameDateTime.getTime() - 90 * 60 * 1000
-);
-
-const deadlineText =
-  `${deadlineDateTime.getMonth() + 1}月` +
-  `${deadlineDateTime.getDate()}日 ` +
-  `${String(deadlineDateTime.getHours()).padStart(2, "0")}:` +
-  `${String(deadlineDateTime.getMinutes()).padStart(2, "0")}`;
-    gameInfo.innerHTML = `
-      <div class="date">
-        ${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日
-        （${weekdays[date.getDay()]}）
-      </div>
-
-      <div class="match">
-        北海道日本ハムファイターズ<br>
-        VS<br>
-        ${todayGame.opponent}
-      </div>
-
-      <div class="stadium">
-        📍 ${todayGame.stadium}<br>
-        🕐 ${todayGame.time}
-      </div>
-
-      <div class="deadline" id="deadline">
-  ⏰ 予想締切：${deadlineText}
-</div>
-    `;
-  })
-  .catch(error => {
-    console.error("試合情報の取得に失敗しました", error);
-
-    document.getElementById("gameInfo").innerHTML = `
-      <div class="date">
-        試合情報を取得できませんでした
-      </div>
-    `;
-  });
-
-  // ========================================
-// TOP 現在のランキング
-// ========================================
+// ==================================================
+// メンバー
+// ==================================================
 
 const members = [
   "ともき",
@@ -299,307 +284,399 @@ const members = [
   "ゆな"
 ];
 
-const today = new Date();
 
-const todayString =
-  today.getFullYear() + "-" +
-  String(today.getMonth() + 1).padStart(2, "0") + "-" +
-  String(today.getDate()).padStart(2, "0");
+// ==================================================
+// 試合情報
+// ==================================================
 
-const savedAnswer =
-  localStorage.getItem("fightersAnswer");
+fetch(GAS_URL)
 
-let answer = null;
+  .then(function(response) {
 
-if (savedAnswer) {
+    return response.json();
 
-  try {
+  })
 
-    const answerData =
-      JSON.parse(savedAnswer);
+  .then(function(games) {
 
-    // =========================
-    // 新しい保存形式
-    // =========================
+    const todayGame =
+      games.find(function(game) {
 
-    if (
-      answerData &&
-      !Array.isArray(answerData) &&
-      answerData.answer
-    ) {
+        return game.date === todayString;
 
-      // 今日登録された正解スタメンだけ使用
-      if (answerData.date === todayString) {
-
-        answer = answerData.answer;
-
-      }
-
-    }
-
-    // =========================
-    // 旧い保存形式
-    // =========================
-
-    if (Array.isArray(answerData)) {
-
-      answer = answerData;
-
-    }
-
-  } catch (error) {
-
-    console.error(
-      "正解スタメンの読み込みに失敗しました",
-      error
-    );
-
-  }
-
-}
-
-// =========================
-// 本日のスタメンを表示
-// =========================
-
-if (answer) {
-
-  const lineupArea =
-    document.getElementById("todayLineup");
-
-  const lineupList =
-    document.getElementById("todayLineupList");
-
-  if (lineupArea && lineupList) {
-
-    lineupArea.style.display = "block";
-
-    answer.forEach(function(player) {
-
-      const row =
-        document.createElement("div");
-
-      row.textContent =
-        player.battingOrder + "番　" +
-        player.position + "　" +
-        player.player;
-
-      lineupList.appendChild(row);
-
-    });
-
-  }
-
-}
-
-const points = {};
-
-members.forEach(function(member) {
-
-  points[member] = 0;
-
-  const savedData =
-    localStorage.getItem(
-      "fightersPrediction_" + member
-    );
-
-  if (!savedData || !answer) {
-    return;
-  }
-
-  try {
-
-    const data = JSON.parse(savedData);
-
-    let predictionData = null;
-// =========================
-// 新しい保存形式
-// =========================
-
-if (
-  data &&
-  !Array.isArray(data) &&
-  data.prediction
-) {
-
-  if (data.date === todayString) {
-
-    predictionData = data.prediction;
-  }
-
-}
-
-// =========================
-// 旧い保存形式
-// =========================
-
-if (Array.isArray(data)) {
-
-  predictionData = data;
-
-}
-
-// 予想データがなければ終了
-if (!predictionData) {
-  return;
-}
-
-    let correctCount = 0;
-
-    for (let i = 1; i <= 9; i++) {
-
-      const prediction =
-        predictionData.find(function(player) {
-          return player.battingOrder === i;
-        });
-
-      const correct =
-        answer.find(function(player) {
-          return player.battingOrder === i;
-        });
-
-      if (
-        prediction &&
-        correct &&
-        prediction.player === correct.player &&
-        prediction.position === correct.position
-      ) {
-        correctCount++;
-      }
-
-    }
-
-    points[member] =
-      correctCount === 9
-        ? 100
-        : correctCount;
-
-  } catch (error) {
-
-    console.error(
-      member + "のランキング計算に失敗しました",
-      error
-    );
-
-  }
-
-});
-
-const ranking =
-  members.slice().sort(function(a, b) {
-    return points[b] - points[a];
-  });
-
-const rankingElement =
-  document.getElementById("ranking");
-
-if (rankingElement) {
-
-  let rankingHtml = "";
-
-ranking.forEach(function(member, index) {
-
-  rankingHtml += `
-    <div class="ranking">
-      <span>${index + 1}位　${member}</span>
-      <strong>${points[member]}点</strong>
-    </div>
-  `;
-
-});
-
-  rankingElement.innerHTML = rankingHtml;
-
-}
-// みんなのスタメン予想をGASから取得
-
-fetch(
-  GAS_URL + "?action=getPredictions"
-)
-.then(function(response) {
-  return response.json();
-})
-.then(function(data) {
-
-  const area =
-    document.getElementById("allPredictions");
-
-  if (!area) return;
-
-  area.innerHTML = "";
-
-  const todayPredictions =
-    data.filter(function(item) {
-      return item.date === todayString;
-    });
-
-  if (todayPredictions.length === 0) {
-    area.innerHTML =
-      "<p>まだ予想は登録されていません。</p>";
-    return;
-  }
-
-  const members = [
-    "ともき",
-    "えりか",
-    "ほのか",
-    "ゆな"
-  ];
-
-  members.forEach(function(member) {
-
-    const memberData =
-      todayPredictions.filter(function(item) {
-        return item.member === member;
       });
 
-    if (memberData.length === 0) return;
 
-    const title =
-      document.createElement("h4");
+    const gameInfo =
+      document.getElementById("gameInfo");
 
-    title.textContent =
-      "👤 " + member;
 
-    area.appendChild(title);
+    if (!todayGame) {
 
-    memberData
+      gameInfo.innerHTML = `
+        <div class="date">
+          本日の試合情報はありません
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    const date =
+      new Date(
+        todayGame.date + "T00:00:00"
+      );
+
+
+    const weekdays = [
+      "日",
+      "月",
+      "火",
+      "水",
+      "木",
+      "金",
+      "土"
+    ];
+
+
+    console.log(
+      "試合開始時刻:",
+      todayGame.time
+    );
+
+
+    // =========================
+    // 締切時刻
+    // 試合開始90分前
+    // =========================
+
+    const gameDateTime =
+      new Date(
+        todayGame.date +
+        "T" +
+        todayGame.time +
+        ":00"
+      );
+
+
+    const deadlineDateTime =
+      new Date(
+        gameDateTime.getTime() -
+        90 * 60 * 1000
+      );
+
+
+    const deadlineText =
+      `${deadlineDateTime.getMonth() + 1}月` +
+      `${deadlineDateTime.getDate()}日 ` +
+      `${String(deadlineDateTime.getHours()).padStart(2, "0")}:` +
+      `${String(deadlineDateTime.getMinutes()).padStart(2, "0")}`;
+
+
+    gameInfo.innerHTML = `
+
+      <div class="date">
+
+        ${date.getFullYear()}年
+        ${date.getMonth() + 1}月
+        ${date.getDate()}日
+        （${weekdays[date.getDay()]}）
+
+      </div>
+
+
+      <div class="match">
+
+        北海道日本ハムファイターズ<br>
+
+        VS<br>
+
+        ${todayGame.opponent}
+
+      </div>
+
+
+      <div class="stadium">
+
+        📍 ${todayGame.stadium}<br>
+
+        🕐 ${todayGame.time}
+
+      </div>
+
+
+      <div class="deadline">
+
+        ⏰ 予想締切：${deadlineText}
+
+      </div>
+
+    `;
+
+  })
+
+  .catch(function(error) {
+
+    console.error(
+      "試合情報の取得に失敗しました",
+      error
+    );
+
+
+    document.getElementById(
+      "gameInfo"
+    ).innerHTML = `
+
+      <div class="date">
+
+        試合情報を取得できませんでした
+
+      </div>
+
+    `;
+
+  });
+
+
+// ==================================================
+// 本日の正解スタメンをGASから取得
+// ==================================================
+
+fetch(
+  GAS_URL +
+  "?action=getAnswer" +
+  "&date=" +
+  encodeURIComponent(todayString)
+)
+
+  .then(function(response) {
+
+    return response.json();
+
+  })
+
+  .then(function(answer) {
+
+    if (
+      !Array.isArray(answer) ||
+      answer.length === 0
+    ) {
+
+      return;
+
+    }
+
+
+    const lineupArea =
+      document.getElementById(
+        "todayLineup"
+      );
+
+
+    const lineupList =
+      document.getElementById(
+        "todayLineupList"
+      );
+
+
+    if (!lineupArea || !lineupList) {
+
+      return;
+
+    }
+
+
+    lineupList.innerHTML = "";
+
+
+    answer
       .sort(function(a, b) {
-        return a.battingOrder - b.battingOrder;
+
+        return a.battingOrder -
+               b.battingOrder;
+
       })
-      .forEach(function(item) {
+      .forEach(function(player) {
 
         const row =
           document.createElement("div");
 
-        row.textContent =
-          item.battingOrder + "番　" +
-          item.position + "　" +
-          item.player;
 
-        area.appendChild(row);
+        row.className =
+          "lineup-row";
+
+
+        row.textContent =
+          player.battingOrder +
+          "番　" +
+          player.position +
+          "　" +
+          player.player;
+
+
+        lineupList.appendChild(row);
 
       });
 
+
+    lineupArea.style.display =
+      "block";
+
+  })
+
+  .catch(function(error) {
+
+    console.error(
+      "正解スタメンの取得に失敗しました",
+      error
+    );
+
   });
 
-})
-.catch(function(error) {
 
-  console.error(
-    "みんなの予想取得に失敗しました",
-    error
-  );
+// ==================================================
+// 累計ランキングをGASから取得
+// ==================================================
 
-  const area =
-    document.getElementById("allPredictions");
+fetch(
+  GAS_URL +
+  "?action=getRanking"
+)
 
-  if (area) {
-    area.innerHTML =
-      "<p>予想データを取得できませんでした。</p>";
-  }
+  .then(function(response) {
 
-});
+    return response.json();
+
+  })
+
+  .then(function(ranking) {
+
+    const rankingElement =
+      document.getElementById(
+        "ranking"
+      );
+
+
+    if (!rankingElement) {
+
+      return;
+
+    }
+
+
+    // =========================
+    // 4人全員を表示
+    // =========================
+
+    const rankingMap = {};
+
+
+    if (Array.isArray(ranking)) {
+
+      ranking.forEach(function(item) {
+
+        rankingMap[item.member] =
+          Number(item.points) || 0;
+
+      });
+
+    }
+
+
+    // GASの順位順を利用
+    // 同点の場合もGASの順番をそのまま表示
+
+    let rankingHtml = "";
+
+
+    if (Array.isArray(ranking) && ranking.length > 0) {
+
+      ranking.forEach(function(item, index) {
+
+        const points =
+          Number(item.points) || 0;
+
+
+        rankingHtml += `
+
+          <div class="ranking">
+
+            <span>
+              ${index + 1}位　${item.member}
+            </span>
+
+            <strong>
+              ${points}点
+            </strong>
+
+          </div>
+
+        `;
+
+      });
+
+    } else {
+
+      // データがまだない場合
+
+      members.forEach(function(member, index) {
+
+        rankingHtml += `
+
+          <div class="ranking">
+
+            <span>
+              ${index + 1}位　${member}
+            </span>
+
+            <strong>
+              0点
+            </strong>
+
+          </div>
+
+        `;
+
+      });
+
+    }
+
+
+    rankingElement.innerHTML =
+      rankingHtml;
+
+  })
+
+  .catch(function(error) {
+
+    console.error(
+      "ランキングの取得に失敗しました",
+      error
+    );
+
+
+    const rankingElement =
+      document.getElementById(
+        "ranking"
+      );
+
+
+    if (rankingElement) {
+
+      rankingElement.innerHTML = `
+
+        <p>
+          ランキングを取得できませんでした
+        </p>
+
+      `;
+
+    }
+
+  });
+
 
 </script>
 
