@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -37,6 +38,12 @@ body {
 .header h1 {
     margin: 8px 0 0;
     font-size: 26px;
+}
+
+.date {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
 }
 
 .box {
@@ -87,6 +94,11 @@ button {
     cursor: pointer;
 }
 
+button:disabled {
+    background: #999;
+    cursor: not-allowed;
+}
+
 #message {
     text-align: center;
     margin-top: 15px;
@@ -95,164 +107,188 @@ button {
 }
 
 .home-button {
-  display: inline-block;
-  padding: 10px 20px;
-  margin-bottom: 15px;
-  background-color: #0080c8;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: bold;
+    display: inline-block;
+    padding: 10px 20px;
+    margin-bottom: 15px;
+    background-color: #0080c8;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
 }
 
 .home-button:hover {
-  opacity: 0.85;
+    opacity: 0.85;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<a href="index.html" class="home-button">🏠 HOMEに戻る</a>
+<a href="index.html" class="home-button">
+    🏠 HOMEに戻る
+</a>
 
 <div class="container">
 
-    <div class="header">
+<div class="header">
 
-        <img src="logo.svg"
-             alt="北海道日本ハムファイターズ"
-             class="logo">
+    <img
+        src="logo.svg"
+        alt="北海道日本ハムファイターズ"
+        class="logo"
+    >
 
-        <h1>正解スタメン登録 ⚾</h1>
+    <h1>正解スタメン登録 ⚾</h1>
 
-    </div>
+</div>
 
-    <div class="date" id="gameInfo">
-        試合情報を読み込み中...
-    </div>
+<div class="date" id="gameInfo">
+    試合情報を読み込み中...
+</div>
 
-    <div class="box">
+<div class="box">
 
-        <h2>本日の正解スタメン</h2>
+    <h2>本日の正解スタメン</h2>
 
-        <div id="players"></div>
+    <div id="players"></div>
 
-        <p>※投手は採点対象外です</p>
+    <p>※投手は採点対象外です</p>
 
-    </div>
+</div>
 
-    <button onclick="saveAnswer()">
-        正解スタメンを登録する
-    </button>
+<button
+    id="saveButton"
+    onclick="saveAnswer()"
+>
+    正解スタメンを登録する
+</button>
 
-    <div id="message"></div>
+<div id="message"></div>
 
 </div>
 
 <script>
 
+// ==================================================
+// GAS
+// ==================================================
+
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
+
+
+// ==================================================
+// 選手一覧
+// ==================================================
+
 const playerGroups = {
 
-  "捕手": [
-    "マルティネス",
-    "郡司裕也",
-    "清水優心",
-    "進藤勇也",
-    "リン",
-    "藤森海斗",
-    "吉田賢吾",
-    "田宮裕涼",
-    "梅林優貴",
-    "日渡騰輝"
-  ],
+    "捕手": [
+        "マルティネス",
+        "郡司裕也",
+        "清水優心",
+        "進藤勇也",
+        "リン",
+        "藤森海斗",
+        "吉田賢吾",
+        "田宮裕涼",
+        "梅林優貴",
+        "日渡騰輝"
+    ],
 
-  "内野手": [
-    "上川畑大悟",
-    "野村佑希",
-    "カストロ",
-    "中島卓也",
-    "清宮幸太郎",
-    "有薗直輝",
-    "水野達稀",
-    "阪口樂",
-    "大塚瑠晏",
-    "半田南十",
-    "山縣秀",
-    "細川凌平",
-    "奈良間大己",
-    "明瀬諒介",
-    "常谷拓輝",
-    "濵田泰希"
-  ],
+    "内野手": [
+        "上川畑大悟",
+        "野村佑希",
+        "カストロ",
+        "中島卓也",
+        "清宮幸太郎",
+        "有薗直輝",
+        "水野達稀",
+        "阪口樂",
+        "大塚瑠晏",
+        "半田南十",
+        "山縣秀",
+        "細川凌平",
+        "奈良間大己",
+        "明瀬諒介",
+        "常谷拓輝",
+        "濵田泰希"
+    ],
 
-  "外野手": [
-    "西川遥輝",
-    "淺間大基",
-    "宮崎一樹",
-    "エドポロケイン",
-    "五十幡亮汰",
-    "水谷瞬",
-    "今川優馬",
-    "万波中正",
-    "レイエス",
-    "藤田大清",
-    "山口アタル",
-    "星野ひので"
-  ],
+    "外野手": [
+        "西川遥輝",
+        "淺間大基",
+        "宮崎一樹",
+        "エドポロケイン",
+        "五十幡亮汰",
+        "水谷瞬",
+        "今川優馬",
+        "万波中正",
+        "レイエス",
+        "藤田大清",
+        "山口アタル",
+        "星野ひので"
+    ],
 
-  "投手": [
-    "矢澤宏太",
-    "生田目翼",
-    "加藤貴之",
-    "北山亘基",
-    "達孝太",
-    "伊藤大海",
-    "山﨑福也",
-    "玉井大翔",
-    "上原健太",
-    "金村尚真",
-    "宮西尚生",
-    "田中正義",
-    "大川慈英",
-    "河野竜生",
-    "細野晴希",
-    "ラオ",
-    "柴田獅子",
-    "藤田琉生",
-    "堀瑞輝",
-    "浅利太門",
-    "古林睿煬",
-    "島本浩也",
-    "福谷浩司",
-    "福島蓮",
-    "畔柳亨丞",
-    "柳川大晟",
-    "齋藤友貴哉",
-    "池田隆英",
-    "菊地大稀",
-    "清水大暉",
-    "山城航太郎",
-    "山本拓実",
-    "有原航平",
-    "松岡洸希",
-    "清宮虎多朗",
-    "孫易磊"
-  ],
+    "投手": [
+        "矢澤宏太",
+        "生田目翼",
+        "加藤貴之",
+        "北山亘基",
+        "達孝太",
+        "伊藤大海",
+        "山﨑福也",
+        "玉井大翔",
+        "上原健太",
+        "金村尚真",
+        "宮西尚生",
+        "田中正義",
+        "大川慈英",
+        "河野竜生",
+        "細野晴希",
+        "ラオ",
+        "柴田獅子",
+        "藤田琉生",
+        "堀瑞輝",
+        "浅利太門",
+        "古林睿煬",
+        "島本浩也",
+        "福谷浩司",
+        "福島蓮",
+        "畔柳亨丞",
+        "柳川大晟",
+        "齋藤友貴哉",
+        "池田隆英",
+        "菊地大稀",
+        "清水大暉",
+        "山城航太郎",
+        "山本拓実",
+        "有原航平",
+        "松岡洸希",
+        "清宮虎多朗",
+        "孫易磊"
+    ],
 
-  "育成": [
-    "加藤大和",
-    "松本遼大",
-    "川勝空人",
-    "澁谷純希",
-    "横山永遠",
-    "福田俊",
-    "安西叶翔",
-    "根本悠楓"
-  ]
+    "育成": [
+        "加藤大和",
+        "松本遼大",
+        "川勝空人",
+        "澁谷純希",
+        "横山永遠",
+        "福田俊",
+        "安西叶翔",
+        "根本悠楓"
+    ]
 
 };
 
+
+// ==================================================
+// 守備位置
+// ==================================================
 
 const positions = [
     "捕",
@@ -267,12 +303,14 @@ const positions = [
 ];
 
 
+// ==================================================
+// 9人分の入力欄を作成
+// ==================================================
+
 const playersArea =
     document.getElementById("players");
 
 
-// 1番～9番を作成
-// 最初はすべて空欄
 for (let i = 0; i < 9; i++) {
 
     const row =
@@ -295,13 +333,18 @@ for (let i = 0; i < 9; i++) {
                 守備位置を選択してください
             </option>
 
-            ${positions.map(position =>
-                `<option value="${position}">
-                    ${position}
-                </option>`
-            ).join("")}
+            ${positions.map(function(position) {
+
+                return `
+                    <option value="${position}">
+                        ${position}
+                    </option>
+                `;
+
+            }).join("")}
 
         </select>
+
 
         <label>選手</label>
 
@@ -312,19 +355,28 @@ for (let i = 0; i < 9; i++) {
             </option>
 
             ${Object.entries(playerGroups).map(
-                ([groupName, players]) => `
+                function([groupName, players]) {
 
-                <optgroup label="${groupName}">
+                    return `
 
-                    ${players.map(player =>
-                        `<option value="${player}">
-                            ${player}
-                        </option>`
-                    ).join("")}
+                        <optgroup label="${groupName}">
 
-                </optgroup>
+                            ${players.map(function(player) {
 
-            `).join("")}
+                                return `
+                                    <option value="${player}">
+                                        ${player}
+                                    </option>
+                                `;
+
+                            }).join("")}
+
+                        </optgroup>
+
+                    `;
+
+                }
+            ).join("")}
 
         </select>
 
@@ -333,16 +385,43 @@ for (let i = 0; i < 9; i++) {
     playersArea.appendChild(row);
 
 }
-loadTodayAnswer();
 
 
-// 正解スタメンを保存
+// ==================================================
+// 今日の日付
+// ==================================================
+
+function getTodayString() {
+
+    const today =
+        new Date();
+
+    return (
+        today.getFullYear() +
+        "-" +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(today.getDate()).padStart(2, "0")
+    );
+
+}
+
+
+// ==================================================
+// 正解スタメン登録
+// ==================================================
+
 function saveAnswer() {
 
     const rows =
         document.querySelectorAll(".player-row");
 
     const answer = [];
+
+
+    // ----------------------------------------------
+    // 9人分を取得
+    // ----------------------------------------------
 
     rows.forEach(function(row, index) {
 
@@ -352,293 +431,396 @@ function saveAnswer() {
         const player =
             row.querySelector(".player").value;
 
+
         answer.push({
 
-            battingOrder: index + 1,
+            battingOrder:
+                index + 1,
 
-            position: position,
+            position:
+                position,
 
-            player: player
+            player:
+                player
 
         });
 
     });
 
 
-    const today =
-    new Date();
+    // ----------------------------------------------
+    // 未入力チェック
+    // ----------------------------------------------
 
-const todayString =
-    today.getFullYear() + "-" +
-    String(today.getMonth() + 1).padStart(2, "0") + "-" +
-    String(today.getDate()).padStart(2, "0");
+    const incomplete =
+        answer.some(function(item) {
 
+            return (
+                !item.position ||
+                !item.player
+            );
 
-const answerData = {
-
-    date: todayString,
-
-    answer: answer,
-
-    savedAt: new Date().toISOString()
-
-};
+        });
 
 
-localStorage.setItem(
-    "fightersAnswer",
-    JSON.stringify(answerData)
-);
+    if (incomplete) {
 
+        const message =
+            document.getElementById("message");
 
-document.getElementById("message").textContent =
-    "✅ 正解スタメンを登録しました！";
+        message.textContent =
+            "⚠️ 9人すべての守備位置と選手を入力してください";
 
-}
-// =========================
-// 今日の正解スタメンを読み込む
-// =========================
-
-// =========================
-// 今日の正解スタメンを読み込む
-// =========================
-
-function loadTodayAnswer() {
-
-    const saved =
-        localStorage.getItem("fightersAnswer");
-
-    if (!saved) return;
-
-    let data;
-
-    try {
-
-        data = JSON.parse(saved);
-
-    } catch (error) {
-
-        console.error(
-            "正解スタメンの読み込みに失敗しました",
-            error
-        );
+        message.style.color =
+            "#d71920";
 
         return;
 
     }
 
-    // =========================
-    // 新しい保存形式
-    // =========================
 
-    let answer = null;
+    const todayString =
+        getTodayString();
 
-    if (
-        data &&
-        !Array.isArray(data) &&
-        data.answer
-    ) {
 
-        const today =
-            new Date();
+    const button =
+        document.getElementById("saveButton");
 
-        const todayString =
-            today.getFullYear() + "-" +
-            String(today.getMonth() + 1).padStart(2, "0") + "-" +
-            String(today.getDate()).padStart(2, "0");
 
-        // 今日の登録データだけ読み込む
-        if (data.date === todayString) {
+    button.disabled = true;
 
-            answer =
-                data.answer;
+    button.textContent =
+        "登録中...";
+
+
+    // ----------------------------------------------
+    // GASへ保存
+    // ----------------------------------------------
+
+    fetch(
+        GAS_URL +
+        "?action=saveAnswer" +
+        "&date=" +
+        encodeURIComponent(todayString) +
+        "&answer=" +
+        encodeURIComponent(
+            JSON.stringify(answer)
+        )
+    )
+
+    .then(function(response) {
+
+        return response.json();
+
+    })
+
+    .then(function(result) {
+
+        if (!result.success) {
+
+            throw new Error(
+                "正解スタメンの保存に失敗しました"
+            );
 
         }
 
-    }
 
-    // =========================
-    // 旧い保存形式
-    // =========================
+        // ------------------------------------------
+        // 登録成功
+        // ------------------------------------------
 
-    if (Array.isArray(data)) {
+        document.getElementById("message")
+            .textContent =
+            "✅ 正解スタメンを登録しました！";
 
-        answer = data;
-
-    }
-
-    // 読み込める正解スタメンがなければ終了
-    if (!answer) return;
+        document.getElementById("message")
+            .style.color =
+            "#008000";
 
 
-    const rows =
-        document.querySelectorAll(".player-row");
+        document
+            .querySelectorAll("select")
+            .forEach(function(select) {
+
+                select.disabled = true;
+
+            });
 
 
-    answer.forEach(function(item, index) {
+        button.disabled =
+            true;
 
-        if (!rows[index]) return;
+        button.textContent =
+            "✅ 本日の正解スタメン登録済み";
 
-        rows[index].querySelector(".position").value =
-            item.position || "";
+    })
 
-        rows[index].querySelector(".player").value =
-            item.player || "";
+    .catch(function(error) {
+
+        console.error(
+            "正解スタメン保存エラー",
+            error
+        );
+
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            "正解スタメンを登録する";
+
+
+        document.getElementById("message")
+            .textContent =
+            "⚠️ 正解スタメンの保存に失敗しました";
+
+        document.getElementById("message")
+            .style.color =
+            "#d71920";
 
     });
 
+}
 
-    // =========================
-    // 登録済みなので変更できない
-    // =========================
 
-    document
-        .querySelectorAll("select")
-        .forEach(function(select) {
+// ==================================================
+// 今日の正解スタメンをGASから読み込む
+// ==================================================
 
-            select.disabled = true;
+function loadTodayAnswer() {
+
+    const todayString =
+        getTodayString();
+
+
+    fetch(
+        GAS_URL +
+        "?action=getAnswer" +
+        "&date=" +
+        encodeURIComponent(todayString)
+    )
+
+    .then(function(response) {
+
+        return response.json();
+
+    })
+
+    .then(function(answer) {
+
+        if (
+            !Array.isArray(answer) ||
+            answer.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        const rows =
+            document.querySelectorAll(".player-row");
+
+
+        answer.forEach(function(item) {
+
+            const index =
+                Number(item.battingOrder) - 1;
+
+
+            if (!rows[index]) {
+                return;
+            }
+
+
+            rows[index]
+                .querySelector(".position")
+                .value =
+                item.position || "";
+
+
+            rows[index]
+                .querySelector(".player")
+                .value =
+                item.player || "";
 
         });
 
 
-    const saveButton =
-        document.querySelector(
-            'button[onclick="saveAnswer()"]'
-        );
+        // ------------------------------------------
+        // 登録済み
+        // ------------------------------------------
+
+        document
+            .querySelectorAll("select")
+            .forEach(function(select) {
+
+                select.disabled = true;
+
+            });
 
 
-    if (saveButton) {
+        const button =
+            document.getElementById("saveButton");
 
-        saveButton.disabled = true;
 
-        saveButton.style.background =
-            "#999";
+        button.disabled =
+            true;
 
-        saveButton.style.cursor =
-            "not-allowed";
-
-        saveButton.textContent =
+        button.textContent =
             "✅ 本日の正解スタメン登録済み";
 
-    }
 
+        document.getElementById("message")
+            .textContent =
+            "本日の正解スタメンは登録済みです。";
 
-    document.getElementById("message").textContent =
-        "本日の正解スタメンは登録済みです。";
+        document.getElementById("message")
+            .style.color =
+            "#008000";
+
+    })
+
+    .catch(function(error) {
+
+        console.error(
+            "正解スタメン取得エラー",
+            error
+        );
+
+    });
 
 }
 
-// 試合情報取得
-const GAS_URL =
-"https://script.google.com/macros/s/AKfycbxzMrd3EuNkf0bzze0s7sidnF8oTEbEuPvE3nrJ5oKMWCoirMgftWZezRgeSDiU1eqh2g/exec";
 
+// ==================================================
+// 試合情報取得
+// ==================================================
 
 fetch(GAS_URL)
 
-  .then(response =>
-      response.json()
-  )
+    .then(function(response) {
 
-  .then(games => {
+        return response.json();
 
-    const today =
-        new Date();
+    })
 
-    const todayString =
-        today.getFullYear() + "-" +
-        String(today.getMonth() + 1).padStart(2, "0") + "-" +
-        String(today.getDate()).padStart(2, "0");
+    .then(function(games) {
+
+        const todayString =
+            getTodayString();
 
 
-    const todayGame =
-        games.find(
-            game => game.date === todayString
+        const todayGame =
+            games.find(function(game) {
+
+                return (
+                    game.date === todayString
+                );
+
+            });
+
+
+        const gameInfo =
+            document.getElementById("gameInfo");
+
+
+        if (!todayGame) {
+
+            gameInfo.innerHTML =
+                "本日の試合情報はありません";
+
+            return;
+
+        }
+
+
+        const date =
+            new Date(
+                todayGame.date +
+                "T00:00:00"
+            );
+
+
+        const weekdays = [
+            "日",
+            "月",
+            "火",
+            "水",
+            "木",
+            "金",
+            "土"
+        ];
+
+
+        gameInfo.innerHTML = `
+
+            <strong>
+
+                ${date.getFullYear()}年
+                ${date.getMonth() + 1}月
+                ${date.getDate()}日
+                （${weekdays[date.getDay()]}）
+
+            </strong>
+
+            <br><br>
+
+            北海道日本ハムファイターズ
+
+            <br>
+
+            VS
+
+            <br>
+
+            ${todayGame.opponent}
+
+            <br><br>
+
+            📍 ${todayGame.stadium}
+
+            <br>
+
+            🕐 ${todayGame.time}
+
+            <div style="
+                background:#d71920;
+                color:white;
+                padding:10px;
+                border-radius:8px;
+                margin-top:12px;
+                font-weight:bold;
+            ">
+
+                ⏰ 正解スタメン登録
+
+            </div>
+
+        `;
+
+    })
+
+    .catch(function(error) {
+
+        console.error(
+            "試合情報の取得に失敗しました",
+            error
         );
 
 
-    const gameInfo =
-        document.getElementById("gameInfo");
+        document.getElementById("gameInfo")
+            .textContent =
+            "試合情報を取得できませんでした";
+
+    });
 
 
-    if (!todayGame) {
+// ==================================================
+// 今日の正解スタメンを確認
+// ==================================================
 
-        gameInfo.innerHTML =
-            "本日の試合情報はありません";
-
-        return;
-    }
-
-
-    const date =
-        new Date(
-            todayGame.date + "T00:00:00"
-        );
-
-
-    const weekdays =
-        ["日", "月", "火", "水", "木", "金", "土"];
-
-
-    gameInfo.innerHTML = `
-
-      <strong>
-
-        ${date.getFullYear()}年
-        ${date.getMonth() + 1}月
-        ${date.getDate()}日
-        （${weekdays[date.getDay()]}）
-
-      </strong>
-
-      <br><br>
-
-      北海道日本ハムファイターズ
-
-      <br>
-
-      VS
-
-      <br>
-
-      ${todayGame.opponent}
-
-      <br><br>
-
-      📍 ${todayGame.stadium}
-
-      <br>
-
-      🕐 ${todayGame.time}
-
-      <div style="
-        background:#d71920;
-        color:white;
-        padding:10px;
-        border-radius:8px;
-        margin-top:12px;
-        font-weight:bold;
-      ">
-
-        ⏰ 正解スタメン登録
-
-      </div>
-
-    `;
-
-  })
-
-  .catch(error => {
-
-    console.error(
-        "試合情報の取得に失敗しました",
-        error
-    );
-
-    document.getElementById("gameInfo").textContent =
-        "試合情報を取得できませんでした";
-
-  });
-
+loadTodayAnswer();
 
 </script>
 
