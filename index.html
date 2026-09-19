@@ -185,6 +185,17 @@
 
 </div>
 
+<!-- みんなのスタメン予想 -->
+<div class="prediction-list">
+
+  <h3>⚾ みんなのスタメン予想</h3>
+
+  <div id="allPredictions">
+    <p>みんなの予想を読み込み中…</p>
+  </div>
+
+</div>
+
     <!-- 予想ボタン -->
     <button class="predict-button" onclick="location.href='yoso.html'">
   スタメンを予想する ⚾
@@ -486,30 +497,110 @@ if (rankingElement) {
 
   let rankingHtml = "";
 
-  if (!answer) {
+ranking.forEach(function(member, index) {
 
-    rankingHtml = `
-      <p>正解スタメン登録後にランキングが表示されます。</p>
-    `;
+  rankingHtml += `
+    <div class="ranking">
+      <span>${index + 1}位　${member}</span>
+      <strong>${points[member]}点</strong>
+    </div>
+  `;
 
-  } else {
-
-    ranking.forEach(function(member, index) {
-
-      rankingHtml += `
-        <div class="ranking">
-          <span>${index + 1}位　${member}</span>
-          <strong>${points[member]}点</strong>
-        </div>
-      `;
-
-    });
-
-  }
+});
 
   rankingElement.innerHTML = rankingHtml;
 
 }
+// みんなのスタメン予想をGASから取得
+
+fetch(
+  GAS_URL + "?action=getPredictions"
+)
+.then(function(response) {
+  return response.json();
+})
+.then(function(data) {
+
+  const area =
+    document.getElementById("allPredictions");
+
+  if (!area) return;
+
+  area.innerHTML = "";
+
+  const todayPredictions =
+    data.filter(function(item) {
+      return item.date === todayString;
+    });
+
+  if (todayPredictions.length === 0) {
+    area.innerHTML =
+      "<p>まだ予想は登録されていません。</p>";
+    return;
+  }
+
+  const members = [
+    "ともき",
+    "えりか",
+    "ほのか",
+    "ゆな"
+  ];
+
+  members.forEach(function(member) {
+
+    const memberData =
+      todayPredictions.filter(function(item) {
+        return item.member === member;
+      });
+
+    if (memberData.length === 0) return;
+
+    const title =
+      document.createElement("h4");
+
+    title.textContent =
+      "👤 " + member;
+
+    area.appendChild(title);
+
+    memberData
+      .sort(function(a, b) {
+        return a.battingOrder - b.battingOrder;
+      })
+      .forEach(function(item) {
+
+        const row =
+          document.createElement("div");
+
+        row.textContent =
+          item.battingOrder + "番　" +
+          item.position + "　" +
+          item.player;
+
+        area.appendChild(row);
+
+      });
+
+  });
+
+})
+.catch(function(error) {
+
+  console.error(
+    "みんなの予想取得に失敗しました",
+    error
+  );
+
+  const area =
+    document.getElementById("allPredictions");
+
+  if (area) {
+    area.innerHTML =
+      "<p>予想データを取得できませんでした。</p>";
+  }
+
+});
+
 </script>
 
 </body>
