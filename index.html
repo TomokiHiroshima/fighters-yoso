@@ -133,6 +133,16 @@
     .predict-button:hover {
       opacity: 0.85;
     }
+
+    /* 本日のスタメン */
+.lineup-card h2 {
+  margin-bottom: 8px;
+}
+
+#todayLineupList {
+  margin-bottom: 25px;
+}
+
   </style>
 </head>
 
@@ -166,6 +176,14 @@
 
 </div>
 
+<!-- 本日のスタメン -->
+<div class="lineup-card" id="todayLineup" style="display:none;">
+
+  <h2>⚾ 本日のスタメン</h2>
+
+  <div id="todayLineupList"></div>
+
+</div>
 
     <!-- 予想ボタン -->
     <button class="predict-button" onclick="location.href='yoso.html'">
@@ -283,11 +301,62 @@ const savedAnswer =
 let answer = null;
 
 if (savedAnswer) {
+
   try {
-    answer = JSON.parse(savedAnswer);
+
+    const answerData =
+      JSON.parse(savedAnswer);
+
+    // 今日登録された正解スタメンだけ使用
+    if (answerData.date === todayString) {
+
+      answer = answerData.answer;
+
+    }
+
   } catch (error) {
-    console.error("正解スタメンの読み込みに失敗しました", error);
+
+    console.error(
+      "正解スタメンの読み込みに失敗しました",
+      error
+    );
+
   }
+
+}
+
+// =========================
+// 本日のスタメンを表示
+// =========================
+
+if (answer) {
+
+  const lineupArea =
+    document.getElementById("todayLineup");
+
+  const lineupList =
+    document.getElementById("todayLineupList");
+
+  if (lineupArea && lineupList) {
+
+    lineupArea.style.display = "block";
+
+    answer.forEach(function(player) {
+
+      const row =
+        document.createElement("div");
+
+      row.textContent =
+        player.battingOrder + "番　" +
+        player.position + "　" +
+        player.player;
+
+      lineupList.appendChild(row);
+
+    });
+
+  }
+
 }
 
 const points = {};
