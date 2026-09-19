@@ -156,31 +156,15 @@
 
 
     <!-- 現在のランキング -->
-    <div class="ranking-card">
+<div class="ranking-card">
 
-      <h3>🏆 現在のランキング</h3>
+  <h3>🏆 現在のランキング</h3>
 
-      <div class="ranking">
-        <span>1位　ともき</span>
-        <strong>準備中</strong>
-      </div>
+  <div id="ranking">
+    <p>ランキングを読み込み中…</p>
+  </div>
 
-      <div class="ranking">
-        <span>2位　えりか</span>
-        <strong>準備中</strong>
-      </div>
-
-      <div class="ranking">
-        <span>3位　ほのか</span>
-        <strong>準備中</strong>
-      </div>
-
-      <div class="ranking">
-        <span>4位　ゆな</span>
-        <strong>準備中</strong>
-      </div>
-
-    </div>
+</div>
 
 
     <!-- 予想ボタン -->
@@ -227,6 +211,22 @@ fetch(GAS_URL)
     const date = new Date(todayGame.date + "T00:00:00");
     const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
 
+    console.log("試合開始時刻:", todayGame.time);
+
+    // 試合開始時刻から1時間30分前を計算
+const gameDateTime = new Date(
+  todayGame.date + "T" + todayGame.time + ":00"
+);
+
+const deadlineDateTime = new Date(
+  gameDateTime.getTime() - 90 * 60 * 1000
+);
+
+const deadlineText =
+  `${deadlineDateTime.getMonth() + 1}月` +
+  `${deadlineDateTime.getDate()}日 ` +
+  `${String(deadlineDateTime.getHours()).padStart(2, "0")}:` +
+  `${String(deadlineDateTime.getMinutes()).padStart(2, "0")}`;
     gameInfo.innerHTML = `
       <div class="date">
         ${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日
@@ -244,9 +244,9 @@ fetch(GAS_URL)
         🕐 ${todayGame.time}
       </div>
 
-      <div class="deadline">
-        ⏰ 予想締切：試合開始2時間前
-      </div>
+      <div class="deadline" id="deadline">
+  ⏰ 予想締切：${deadlineText}
+</div>
     `;
   })
   .catch(error => {
@@ -258,6 +258,141 @@ fetch(GAS_URL)
       </div>
     `;
   });
+
+  // ========================================
+// TOP 現在のランキング
+// ========================================
+
+const members = [
+  "ともき",
+  "えりか",
+  "ほのか",
+  "ゆな"
+];
+
+const today = new Date();
+
+const todayString =
+  today.getFullYear() + "-" +
+  String(today.getMonth() + 1).padStart(2, "0") + "-" +
+  String(today.getDate()).padStart(2, "0");
+
+const savedAnswer =
+  localStorage.getItem("fightersAnswer");
+
+let answer = null;
+
+if (savedAnswer) {
+  try {
+    answer = JSON.parse(savedAnswer);
+  } catch (error) {
+    console.error("正解スタメンの読み込みに失敗しました", error);
+  }
+}
+
+const points = {};
+
+members.forEach(function(member) {
+
+  points[member] = 0;
+
+  const savedData =
+    localStorage.getItem(
+      "fightersPrediction_" + member
+    );
+
+  if (!savedData || !answer) {
+    return;
+  }
+
+  try {
+
+    const data = JSON.parse(savedData);
+
+    if (
+      data.date !== todayString ||
+      !data.prediction
+    ) {
+      return;
+    }
+
+    let correctCount = 0;
+
+    for (let i = 1; i <= 9; i++) {
+
+      const prediction =
+        data.prediction.find(function(player) {
+          return player.battingOrder === i;
+        });
+
+      const correct =
+        answer.find(function(player) {
+          return player.battingOrder === i;
+        });
+
+      if (
+        prediction &&
+        correct &&
+        prediction.player === correct.player &&
+        prediction.position === correct.position
+      ) {
+        correctCount++;
+      }
+
+    }
+
+    points[member] =
+      correctCount === 9
+        ? 100
+        : correctCount;
+
+  } catch (error) {
+
+    console.error(
+      member + "のランキング計算に失敗しました",
+      error
+    );
+
+  }
+
+});
+
+const ranking =
+  members.slice().sort(function(a, b) {
+    return points[b] - points[a];
+  });
+
+const rankingElement =
+  document.getElementById("ranking");
+
+if (rankingElement) {
+
+  let rankingHtml = "";
+
+  if (!answer) {
+
+    rankingHtml = `
+      <p>正解スタメン登録後にランキングが表示されます。</p>
+    `;
+
+  } else {
+
+    ranking.forEach(function(member, index) {
+
+      rankingHtml += `
+        <div class="ranking">
+          <span>${index + 1}位　${member}</span>
+          <strong>${points[member]}点</strong>
+        </div>
+      `;
+
+    });
+
+  }
+
+  rankingElement.innerHTML = rankingHtml;
+
+}
 </script>
 
 </body>
