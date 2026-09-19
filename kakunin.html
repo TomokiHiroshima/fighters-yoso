@@ -2,6 +2,7 @@
 
 <html lang="ja">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -157,26 +158,6 @@ body {
     color: #0080c8;
 }
 
-.comparison-note {
-    color: #888;
-    font-size: 13px;
-    margin-top: -8px;
-    margin-bottom: 10px;
-}
-
-.refresh-button {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    border: none;
-    border-radius: 10px;
-    background: #0080c8;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-}
 
 .home-button {
     display: inline-block;
@@ -226,26 +207,19 @@ body {
 
 <div class="header">
 
-    <img
-        src="logo.svg"
-        alt="北海道日本ハムファイターズ"
-        class="logo"
-    >
+<img
+    src="logo.svg"
+    alt="北海道日本ハムファイターズ"
+    class="logo"
+>
 
-    <h1>予想確認 ⚾️</h1>
+<h1>予想確認 ⚾️</h1>
 
 </div>
 
 <div class="date" id="gameInfo">
     試合情報を読み込み中...
 </div>
-
-<button
-    onclick="location.reload()"
-    class="refresh-button"
->
-    🔄 最新の予想に更新
-</button>
 
 <div id="comparison"></div>
 
@@ -276,6 +250,79 @@ const members = [
 
 
 // ==================================================
+// 日付を yyyy-MM-dd に統一
+// ==================================================
+
+function normalizeDate(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return "";
+    }
+
+    const text = String(value).trim();
+
+    // yyyy-MM-dd で始まっている場合
+    const match =
+        text.match(/^(\d{4}-\d{2}-\d{2})/);
+
+    if (match) {
+
+        // ISO形式の日時なら日本時間に変換
+        if (
+            text.includes("T") &&
+            text.endsWith("Z")
+        ) {
+
+            const date =
+                new Date(text);
+
+            if (
+                !isNaN(date.getTime())
+            ) {
+
+                return date.toLocaleDateString(
+                    "sv-SE",
+                    {
+                        timeZone: "Asia/Tokyo"
+                    }
+                );
+
+            }
+
+        }
+
+        return match[1];
+
+    }
+
+
+    // その他の日付形式
+    const date =
+        new Date(value);
+
+    if (
+        !isNaN(date.getTime())
+    ) {
+
+        return date.toLocaleDateString(
+            "sv-SE",
+            {
+                timeZone: "Asia/Tokyo"
+            }
+        );
+
+    }
+
+    return text;
+
+}
+
+
+// ==================================================
 // 今日の日付
 // ==================================================
 
@@ -283,9 +330,12 @@ const today =
     new Date();
 
 const todayString =
-    today.getFullYear() + "-" +
-    String(today.getMonth() + 1).padStart(2, "0") + "-" +
-    String(today.getDate()).padStart(2, "0");
+    today.toLocaleDateString(
+        "sv-SE",
+        {
+            timeZone: "Asia/Tokyo"
+        }
+    );
 
 
 // ==================================================
@@ -327,7 +377,7 @@ let rankingData = [];
 
 
 // ==================================================
-// 3つのデータをGASから取得
+// GASから3種類のデータを取得
 // ==================================================
 
 Promise.all([
@@ -366,7 +416,9 @@ Promise.all([
 .then(function(results) {
 
     const predictions =
-        results[0];
+        Array.isArray(results[0])
+            ? results[0]
+            : [];
 
     answer =
         Array.isArray(results[1])
@@ -381,13 +433,26 @@ Promise.all([
 
     // ==================================================
     // 今日の予想だけをメンバー別に整理
+    // ★ここを日付の形式に関係なく判定
     // ==================================================
 
     predictions.forEach(function(item) {
 
+        const itemDate =
+            normalizeDate(item.date);
+
         if (
-            String(item.date) !==
-            String(todayString)
+            itemDate !== todayString
+        ) {
+
+            return;
+
+        }
+
+        if (
+            !members.includes(
+                String(item.member)
+            )
         ) {
 
             return;
@@ -395,24 +460,17 @@ Promise.all([
         }
 
 
-        if (
-            !members.includes(item.member)
-        ) {
-
-            return;
-
-        }
-
-
-        comparisonData[item.member][
+        comparisonData[
+            String(item.member)
+        ][
             Number(item.battingOrder)
         ] = {
 
             player:
-                item.player,
+                String(item.player || ""),
 
             position:
-                item.position
+                String(item.position || "")
 
         };
 
@@ -508,10 +566,6 @@ Promise.all([
 
         <h2>📊 みんなの予想を比較</h2>
 
-        <p class="comparison-note">
-            同じ選手を予想しているところが分かります
-        </p>
-
         <div class="comparison-table">
 
             <div class="comparison-row header">
@@ -587,11 +641,10 @@ Promise.all([
             let className = "";
 
 
-            // ==================================================
             // 同じ選手を予想
-            // ==================================================
-
-            if (count >= 2) {
+            if (
+                count >= 2
+            ) {
 
                 className =
                     "same-player";
@@ -599,12 +652,10 @@ Promise.all([
             }
 
 
-            // ==================================================
             // 正解
-            // 正解した場合はこちらを優先
-            // ==================================================
-
-            if (answer.length > 0) {
+            if (
+                answer.length > 0
+            ) {
 
                 const correct =
                     answer.find(function(item) {
@@ -682,7 +733,6 @@ Promise.all([
         const box =
             document.createElement("div");
 
-
         box.className =
             "member";
 
@@ -726,11 +776,10 @@ Promise.all([
                     let rowClass = "";
 
 
-                    // ==================================================
                     // 正解ハイライト
-                    // ==================================================
-
-                    if (answer.length > 0) {
+                    if (
+                        answer.length > 0
+                    ) {
 
                         const correct =
                             answer.find(function(item) {
